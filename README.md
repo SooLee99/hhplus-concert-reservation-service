@@ -88,35 +88,24 @@
   sequenceDiagram
   participant User as 사용자
   participant ReservationServer as 예약 모듈
-  participant QueueDB as 대기열 Queue
   participant ReservationDB as 예약 DB
   
   %% 1️⃣ 예약 가능 날짜 조회 API
   User->>ReservationServer: 예약 가능 날짜 조회 요청
   Note over ReservationServer: 날짜 정보 조회 시작
   
-  %% 대기열 큐에 접근하여 다른 프로세스와 경합 피함
-  ReservationServer->>QueueDB: 날짜 조회 요청 큐 대기 (대기열 등록)
-  alt 큐 접근 성공
-  QueueDB-->>ReservationServer: 큐 진입 성공
+  %% 예약 가능 날짜 조회 로직
   ReservationServer->>ReservationDB: 예약 가능 날짜 목록 조회
   alt 예약 가능한 날짜 없음
   %% 예약 가능한 날짜가 없는 경우
   ReservationDB-->>ReservationServer: "예약 가능한 날짜가 없습니다" 에러 반환
   ReservationServer-->>User: "예약 가능한 날짜가 없습니다" 에러 반환
-  QueueDB-->>ReservationServer: 큐 이탈 (작업 종료)
   else 예약 가능한 날짜 존재
   %% 예약 가능한 날짜가 존재하는 경우
   ReservationDB-->>ReservationServer: 예약 가능 날짜 목록 반환
   ReservationServer-->>User: 예약 가능 날짜 정보 반환
-  QueueDB-->>ReservationServer: 큐 이탈 (작업 종료)
   end
-  else 큐 접근 실패
-  %% 큐 접근 실패 시
-  QueueDB-->>ReservationServer: "큐 접근 실패" 에러 반환
-  ReservationServer-->>User: "서버가 혼잡하여 요청을 처리할 수 없습니다" 에러 반환
-  end
-  
+
   %% 예약 가능 날짜 조회 중 DB 접근 실패 시 처리
   alt DB 접근 실패
   ReservationDB-->>ReservationServer: "DB 접근 실패" 에러 반환
@@ -126,56 +115,38 @@
 
 ## 🏷️ (3) 특정 날짜 좌석 정보 조회 API 시퀀스 다이어그램
 ```mermaid
-  sequenceDiagram
+    sequenceDiagram
   participant User as 사용자
   participant ReservationServer as 예약 모듈
-  participant QueueDB as 대기열 Queue
   participant ReservationDB as 예약 DB
   
   %% 2️⃣ 특정 날짜 좌석 정보 조회 API
   User->>ReservationServer: 특정 날짜의 좌석 정보 조회 요청 (날짜 입력)
   Note over ReservationServer: 좌석 정보 조회 시작
   
-  %% 대기열 큐에 접근하여 경합 방지
-  ReservationServer->>QueueDB: 좌석 정보 조회 요청 큐 대기 (날짜 기반 대기열 등록)
-  alt 큐 접근 성공
-  QueueDB-->>ReservationServer: 큐 진입 성공
+  %% 예약 모듈에서 좌석 정보 조회
   ReservationServer->>ReservationDB: 해당 날짜의 좌석 상태 조회 (1 ~ 50번 좌석)
   
-      alt 좌석 정보 존재
-          %% 좌석 정보가 존재하는 경우
-          ReservationDB-->>ReservationServer: 좌석 상태 반환 (예: 좌석 번호 및 예약 여부)
-          
-          alt 모든 좌석이 예약된 경우
-              ReservationServer-->>User: "모든 좌석이 이미 예약되었습니다" 메시지 반환
-              QueueDB-->>ReservationServer: 큐 이탈 (작업 종료)
-          else 일부 좌석이 예약 가능
-              %% 사용자에게 좌석 정보 반환
-              ReservationServer-->>User: 좌석 정보 반환 (예: 1번 예약, 2번 예약 가능 등)
-              QueueDB-->>ReservationServer: 큐 이탈 (작업 종료)
-          end
-      else 좌석 정보 미존재
-          %% 좌석 정보가 존재하지 않는 경우
-          ReservationDB-->>ReservationServer: "해당 날짜에 대한 좌석 정보가 존재하지 않습니다" 에러 반환
-          ReservationServer-->>User: "해당 날짜에 대한 좌석 정보가 존재하지 않습니다" 에러 반환
-          QueueDB-->>ReservationServer: 큐 이탈 (작업 종료)
+  alt 좌석 정보 존재
+      %% 좌석 정보가 존재하는 경우
+      ReservationDB-->>ReservationServer: 좌석 상태 반환 (예: 좌석 번호 및 예약 여부)
+      
+      alt 모든 좌석이 예약된 경우
+          ReservationServer-->>User: "모든 좌석이 이미 예약되었습니다" 메시지 반환
+      else 일부 좌석이 예약 가능
+          %% 사용자에게 좌석 정보 반환
+          ReservationServer-->>User: 좌석 정보 반환 (예: 1번 예약, 2번 예약 가능 등)
       end
-  else 큐 접근 실패
-  %% 큐 접근 실패 시
-  QueueDB-->>ReservationServer: "큐 접근 실패" 에러 반환
-  ReservationServer-->>User: "서버가 혼잡하여 요청을 처리할 수 없습니다" 에러 반환
+  else 좌석 정보 미존재
+      %% 좌석 정보가 존재하지 않는 경우
+      ReservationDB-->>ReservationServer: "해당 날짜에 대한 좌석 정보가 존재하지 않습니다" 에러 반환
+      ReservationServer-->>User: "해당 날짜에 대한 좌석 정보가 존재하지 않습니다" 에러 반환
   end
   
   %% 예약 가능한 좌석 조회 중 DB 접근 실패 시 처리
   alt DB 접근 실패
   ReservationDB-->>ReservationServer: "DB 접근 실패" 에러 반환
   ReservationServer-->>User: "서버 오류로 인해 좌석 정보를 조회할 수 없습니다" 에러 반환
-  end
-  
-  %% 큐 이탈 실패 처리
-  alt 큐 이탈 실패
-  QueueDB-->>ReservationServer: "큐 이탈 실패" 에러 반환
-  ReservationServer-->>User: "좌석 정보 조회 성공" (정상 응답)
   end
 ```
 
@@ -424,39 +395,31 @@ flowchart TD
     TokenExists -- "No" --> CreateToken --> CreateQueue --> ReturnInfo --> End
 ```
 
-## 🏷️ (2) 예약 가능 날짜 조회 API 시퀀스 다이어그램
+## 🏷️ (2) 예약 가능 날짜 조회 API 플로우 차트
 ```mermaid
 flowchart TD
     %% 노드 정의
     Start["Start"]
     A_RequestDates["사용자: 예약 가능 날짜 조회 요청"]
     B_StartLookup["예약 모듈: 날짜 정보 조회 시작"]
-    C_QueueWait["예약 모듈: 날짜 조회 요청 큐 대기 (대기열 등록)"]
-    D_QueueAccessSuccess{"큐 접근 성공 여부"}
-    E_QueueAccessFailed["예약 모듈: '서버가 혼잡하여 요청을 처리할 수 없습니다' 에러 반환"]
     F_QueryDates["예약 모듈: 예약 가능 날짜 목록 조회"]
     G_DBAccessFailed{"DB 접근 실패 여부"}
     H_DatesAvailable{"예약 가능한 날짜 존재 여부"}
     I_NoDates["예약 모듈: '예약 가능한 날짜가 없습니다' 에러 반환"]
     J_ReturnDates["예약 모듈: 예약 가능 날짜 정보 반환"]
-    K_QueueExit["예약 모듈: 큐 이탈 (작업 종료)"]
     End["End"]
 
     %% 흐름 연결
     Start --> A_RequestDates
     A_RequestDates --> B_StartLookup
-    B_StartLookup --> C_QueueWait
-    C_QueueWait --> D_QueueAccessSuccess
-
-    D_QueueAccessSuccess -- "예" --> F_QueryDates
-    D_QueueAccessSuccess -- "아니오" --> E_QueueAccessFailed --> End
+    B_StartLookup --> F_QueryDates
 
     F_QueryDates --> G_DBAccessFailed
-    G_DBAccessFailed -- "예" --> E_QueueAccessFailed --> K_QueueExit --> End
+    G_DBAccessFailed -- "예" --> I_NoDates --> End
     G_DBAccessFailed -- "아니오" --> H_DatesAvailable
 
-    H_DatesAvailable -- "예" --> J_ReturnDates --> K_QueueExit --> End
-    H_DatesAvailable -- "아니오" --> I_NoDates --> K_QueueExit --> End
+    H_DatesAvailable -- "예" --> J_ReturnDates --> End
+    H_DatesAvailable -- "아니오" --> I_NoDates --> End
 ```
 
 ## 🏷️ (3) 특정 날짜 좌석 정보 조회 API 플로우 차트
@@ -464,38 +427,32 @@ flowchart TD
 flowchart TD
     %% 노드 정의
     Start["Start"]
-    A_RequestReservation["사용자: 좌석 예약 요청 (날짜, 좌석 번호 입력)"]
-    B_StartProcess["예약 모듈: 좌석 예약 처리 시작"]
-    C_CheckToken["예약 모듈: 대기열 토큰 유효성 확인"]
-    D_TokenValid{"대기열 토큰이 유효합니까?"}
-    E_InvalidToken["예약 모듈: '대기열 토큰이 유효하지 않습니다' 에러 반환"]
-    F_CheckSeatAvailability["예약 모듈: 해당 좌석 예약 가능 여부 확인"]
-    G_SeatAvailable{"좌석이 예약 가능합니까?"}
-    H_SeatUnavailable["예약 모듈: '해당 좌석은 예약할 수 없습니다' 에러 반환"]
-    I_LockSeat["예약 모듈: 좌석 임시 배정 (약 5분)"]
-    J_UpdateSeatStatus["예약 DB: 좌석 상태를 '임시 배정'으로 업데이트"]
-    K_LockSuccess["예약 모듈: 좌석 임시 배정 성공"]
-    L_StartTimer["예약 모듈: 타이머 시작 (5분 후 임시 배정 해제)"]
-    M_ReturnSuccess["예약 모듈: 좌석 예약 요청 성공 응답 반환"]
+    A_RequestSeats["사용자: 특정 날짜의 좌석 정보 조회 요청 (날짜 입력)"]
+    B_StartLookup["예약 모듈: 좌석 정보 조회 시작"]
+    C_QuerySeats["예약 모듈: 해당 날짜의 좌석 상태 조회 (1 ~ 50번 좌석)"]
+    D_DBAccessFailed{"DB 접근 실패 여부"}
+    E_ServerError["예약 모듈: '서버 오류로 인해 좌석 정보를 조회할 수 없습니다' 에러 반환"]
+    F_SeatsAvailable{"좌석 정보 존재 여부"}
+    G_NoSeats["예약 모듈: '해당 날짜에 대한 좌석 정보가 존재하지 않습니다' 에러 반환"]
+    H_ReturnAllSeatsReserved["예약 모듈: '모든 좌석이 이미 예약되었습니다' 메시지 반환"]
+    I_ReturnAvailableSeats["예약 모듈: 좌석 정보 반환 (예: 1번 예약, 2번 예약 가능 등)"]
     End["End"]
-    
+
     %% 흐름 연결
-    Start --> A_RequestReservation
-    A_RequestReservation --> B_StartProcess
-    B_StartProcess --> C_CheckToken
-    C_CheckToken --> D_TokenValid
+    Start --> A_RequestSeats
+    A_RequestSeats --> B_StartLookup
+    B_StartLookup --> C_QuerySeats
 
-    D_TokenValid -- "No" --> E_InvalidToken --> End
-    D_TokenValid -- "Yes" --> F_CheckSeatAvailability
+    C_QuerySeats --> D_DBAccessFailed
+    D_DBAccessFailed -- "예" --> E_ServerError --> End
+    D_DBAccessFailed -- "아니오" --> F_SeatsAvailable
 
-    F_CheckSeatAvailability --> G_SeatAvailable
-    G_SeatAvailable -- "No" --> H_SeatUnavailable --> End
-    G_SeatAvailable -- "Yes" --> I_LockSeat
+    F_SeatsAvailable -- "예" --> H_AllSeatsReserved{"모든 좌석이 예약되었는지 여부"}
+    H_AllSeatsReserved -- "예" --> H_ReturnAllSeatsReserved --> End
+    H_AllSeatsReserved -- "아니오" --> I_ReturnAvailableSeats --> End
 
-    I_LockSeat --> J_UpdateSeatStatus
-    J_UpdateSeatStatus --> K_LockSuccess
-    K_LockSuccess --> L_StartTimer
-    L_StartTimer --> M_ReturnSuccess --> End
+    F_SeatsAvailable -- "아니오" --> G_NoSeats --> End
+
 ```
 
 ## 🏷️ (4) 좌석 예약 요청 API 플로우 차트
