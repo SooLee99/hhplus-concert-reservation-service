@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/balance")
+@RequestMapping("/v1/users/{userId}/balance")
 public class BalanceController {
 
-    @PostMapping("/recharge")
-    public Map<String, Object> rechargeBalance(@RequestBody Map<String, Object> request) {
+    @PostMapping
+    public Map<String, Object> rechargeBalance(@PathVariable String userId, @RequestBody Map<String, Object> request) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "충전 성공");
         response.put("current_balance", 10000);
@@ -18,9 +18,9 @@ public class BalanceController {
     }
 
     @GetMapping
-    public Map<String, Object> getCurrentBalance() {
+    public Map<String, Object> getCurrentBalance(@PathVariable String userId) {
         Map<String, Object> response = new HashMap<>();
-        response.put("user_id", "mock-user-id-123");
+        response.put("user_id", userId);
         response.put("current_balance", 10000);
         return response;
     }

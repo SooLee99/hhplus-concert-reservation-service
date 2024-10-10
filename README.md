@@ -33,7 +33,7 @@ src
 
 | 항목                  | 설명                                                        |
 |----------------------|-------------------------------------------------------------|
-| **Endpoint**         | `POST /api/auth/token`                                       |
+| **Endpoint**         | `POST /v1/auth/tokens`                                       |
 | **HTTP Method**      | `POST`                                                       |
 | **Request Header**   | `Content-Type: application/json`                             |
 | **Request Body**     | `{ "user_id": "string" }`                                    |
@@ -68,7 +68,7 @@ src
 
 | 항목                    | 설명                                                        |
 |------------------------|-------------------------------------------------------------|
-| **Endpoint**           | `GET /api/reservations/dates`                                |
+| **Endpoint**           | `GET /v1/concerts/available-dates`                                |
 | **HTTP Method**        | `GET`                                                        |
 | **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
 | **Request Query Params**| 없음                                                        |
@@ -102,7 +102,7 @@ src
 
 | 항목                    | 설명                                                        |
 |------------------------|-------------------------------------------------------------|
-| **Endpoint**           | `GET /api/reservations/seats`                                |
+| **Endpoint**           | `GET /v1/concerts/{concertId}/seats?date={YYYY-MM-DD}`|
 | **HTTP Method**        | `GET`                                                        |
 | **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
 | **Request Query Params**| `date` (필수) - 조회할 날짜 (`YYYY-MM-DD` 형식)               |
@@ -139,7 +139,7 @@ src
 
 | 항목                    | 설명                                                        |
 |------------------------|-------------------------------------------------------------|
-| **Endpoint**           | `POST /api/reservations/reserve`                             |
+| **Endpoint**           | `POST /v1/concerts/{concertId}/reservations`                |
 | **HTTP Method**        | `POST`                                                       |
 | **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
 | **Request Body**       | `{ "date": "YYYY-MM-DD", "seat_number": integer }`           |
@@ -178,7 +178,7 @@ src
 
 | 항목                    | 설명                                                        |
 |------------------------|-------------------------------------------------------------|
-| **Endpoint**           | `POST /api/balance/recharge`                                 |
+| **Endpoint**           | `POST /v1/users/{userId}/balance`                                 |
 | **HTTP Method**        | `POST`                                                       |
 | **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
 | **Request Body**       | `{ "amount": number }`                                       |
@@ -209,7 +209,7 @@ src
 
 | 항목                    | 설명                                                        |
 |------------------------|-------------------------------------------------------------|
-| **Endpoint**           | `GET /api/balance`                                          |
+| **Endpoint**           | `GET /v1/users/{userId}/balance`                                          |
 | **HTTP Method**        | `GET`                                                       |
 | **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
 | **Request Query Params**| 없음                                                        |
@@ -236,7 +236,7 @@ src
 
 | 항목                    | 설명                                                        |
 |------------------------|-------------------------------------------------------------|
-| **Endpoint**           | `POST /api/payments`                                         |
+| **Endpoint**           | `POST /v1/concerts/{concertId}/reservations/{reservationId}/payments`             |
 | **HTTP Method**        | `POST`                                                       |
 | **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
 | **Request Body**

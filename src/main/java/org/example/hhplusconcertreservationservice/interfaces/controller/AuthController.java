@@ -6,10 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/v1/auth")
 public class AuthController {
 
-    @PostMapping("/token")
+    @PostMapping("/tokens")
     public Map<String, Object> issueToken(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
         response.put("token", "mock-token-12345");

@@ -5,18 +5,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/reservations")
+@RequestMapping("/v1/concerts")
 public class ReservationController {
 
-    @GetMapping("/dates")
+    @GetMapping("/available-dates")
     public Map<String, Object> getAvailableDates() {
         Map<String, Object> response = new HashMap<>();
         response.put("available_dates", Arrays.asList("2024-10-11", "2024-10-12", "2024-10-13"));
         return response;
     }
 
-    @GetMapping("/seats")
-    public Map<String, Object> getSeatsByDate(@RequestParam String date) {
+    @GetMapping("/{concertId}/seats")
+    public Map<String, Object> getSeatsByDate(@PathVariable String concertId, @RequestParam String date) {
         Map<String, Object> response = new HashMap<>();
         List<Map<String, Object>> seats = new ArrayList<>();
 
@@ -32,8 +32,8 @@ public class ReservationController {
         return response;
     }
 
-    @PostMapping("/reserve")
-    public Map<String, Object> reserveSeat(@RequestBody Map<String, Object> request) {
+    @PostMapping("/{concertId}/reservations")
+    public Map<String, Object> reserveSeat(@PathVariable String concertId, @RequestBody Map<String, Object> request) {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "임시 예약 성공");
         response.put("reservation_id", "mock-reservation-id-123");
