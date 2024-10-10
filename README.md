@@ -1,3 +1,27 @@
+## 📂 기본 패키지 구조
+```
+src
+└── main
+    └── java
+        └── com
+            └── concert
+                ├── application    // 애플리케이션 서비스 계층 (비즈니스 로직)
+                ├── domain         // 도메인 모델, 엔티티 및 리포지토리 인터페이스
+                ├── infrastructure // DB 접근, 외부 API 연동 등 인프라 관련 코드
+                └── interfaces     // 컨트롤러, DTO, Request/Response 처리 계층
+```
+
+## 📌 기술 스택
+- **Java 17**: 최신 언어 기능 활용
+- **Spring Boot 3.x**: 애플리케이션 구동 및 주요 기능 구현
+- **Spring Data JPA**: ORM 및 데이터베이스 접근
+- **H2 Database**: 테스트 환경을 위한 인메모리 데이터베이스
+- **Lombok**: 코드 간소화를 위한 어노테이션 라이브러리
+- **JUnit 5**: 단위 테스트 및 통합 테스트
+- **MockMVC**: 컨트롤러 테스트 및 Mock API 구현
+
+
+
 ## 📊 **콘서트 예약 시스템 ERD**
 ![concert (1)](https://github.com/user-attachments/assets/26bbdd6e-9c21-4529-be1b-1e20d1965a9e)
 ---
