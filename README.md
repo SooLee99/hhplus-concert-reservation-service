@@ -393,3 +393,290 @@
         end
     end
 ```
+---
+# 📈 플로우 차트
+
+## 🏷️ (1) 유저 토큰 발급 API 플로우 차트
+```mermaid
+flowchart TD
+    %% 노드 정의
+    Start["Start"]
+    TokenRequest["사용자가 토큰 발급 요청 (UUID)"]
+    CheckUser["인증 모듈: 사용자 존재 여부 확인"]
+    UserExists{"사용자가 존재합니까?"}
+    InvalidUser["인증 모듈: '유효하지 않은 사용자' 에러 반환"]
+    GetUserInfo["인증 모듈: 사용자 정보 조회"]
+    CheckToken["인증 모듈: 기존 토큰 존재 여부 확인"]
+    TokenExists{"기존 토큰이 존재합니까?"}
+    TokenError["인증 모듈: '이미 활성화된 토큰이 존재합니다' 에러 반환"]
+    CreateToken["인증 모듈: 새로운 토큰 생성"]
+    CreateQueue["인증 모듈: 새로운 대기열 정보 생성"]
+    ReturnInfo["인증 모듈: 새로운 토큰 및 대기열 정보 반환"]
+    End["End"]
+    
+    %% 흐름 연결
+    Start --> TokenRequest
+    TokenRequest --> CheckUser
+    CheckUser --> UserExists
+    UserExists -- "No" --> InvalidUser --> End
+    UserExists -- "Yes" --> GetUserInfo --> CheckToken --> TokenExists
+    TokenExists -- "Yes" --> TokenError --> End
+    TokenExists -- "No" --> CreateToken --> CreateQueue --> ReturnInfo --> End
+```
+
+## 🏷️ (2) 예약 가능 날짜 조회 API 시퀀스 다이어그램
+```mermaid
+flowchart TD
+    %% 노드 정의
+    Start["Start"]
+    A_RequestDates["사용자: 예약 가능 날짜 조회 요청"]
+    B_StartLookup["예약 모듈: 날짜 정보 조회 시작"]
+    C_QueueWait["예약 모듈: 날짜 조회 요청 큐 대기 (대기열 등록)"]
+    D_QueueAccessSuccess{"큐 접근 성공 여부"}
+    E_QueueAccessFailed["예약 모듈: '서버가 혼잡하여 요청을 처리할 수 없습니다' 에러 반환"]
+    F_QueryDates["예약 모듈: 예약 가능 날짜 목록 조회"]
+    G_DBAccessFailed{"DB 접근 실패 여부"}
+    H_DatesAvailable{"예약 가능한 날짜 존재 여부"}
+    I_NoDates["예약 모듈: '예약 가능한 날짜가 없습니다' 에러 반환"]
+    J_ReturnDates["예약 모듈: 예약 가능 날짜 정보 반환"]
+    K_QueueExit["예약 모듈: 큐 이탈 (작업 종료)"]
+    End["End"]
+
+    %% 흐름 연결
+    Start --> A_RequestDates
+    A_RequestDates --> B_StartLookup
+    B_StartLookup --> C_QueueWait
+    C_QueueWait --> D_QueueAccessSuccess
+
+    D_QueueAccessSuccess -- "예" --> F_QueryDates
+    D_QueueAccessSuccess -- "아니오" --> E_QueueAccessFailed --> End
+
+    F_QueryDates --> G_DBAccessFailed
+    G_DBAccessFailed -- "예" --> E_QueueAccessFailed --> K_QueueExit --> End
+    G_DBAccessFailed -- "아니오" --> H_DatesAvailable
+
+    H_DatesAvailable -- "예" --> J_ReturnDates --> K_QueueExit --> End
+    H_DatesAvailable -- "아니오" --> I_NoDates --> K_QueueExit --> End
+```
+
+## 🏷️ (3) 특정 날짜 좌석 정보 조회 API 플로우 차트
+```mermaid
+flowchart TD
+    %% 노드 정의
+    Start["Start"]
+    A_RequestReservation["사용자: 좌석 예약 요청 (날짜, 좌석 번호 입력)"]
+    B_StartProcess["예약 모듈: 좌석 예약 처리 시작"]
+    C_CheckToken["예약 모듈: 대기열 토큰 유효성 확인"]
+    D_TokenValid{"대기열 토큰이 유효합니까?"}
+    E_InvalidToken["예약 모듈: '대기열 토큰이 유효하지 않습니다' 에러 반환"]
+    F_CheckSeatAvailability["예약 모듈: 해당 좌석 예약 가능 여부 확인"]
+    G_SeatAvailable{"좌석이 예약 가능합니까?"}
+    H_SeatUnavailable["예약 모듈: '해당 좌석은 예약할 수 없습니다' 에러 반환"]
+    I_LockSeat["예약 모듈: 좌석 임시 배정 (약 5분)"]
+    J_UpdateSeatStatus["예약 DB: 좌석 상태를 '임시 배정'으로 업데이트"]
+    K_LockSuccess["예약 모듈: 좌석 임시 배정 성공"]
+    L_StartTimer["예약 모듈: 타이머 시작 (5분 후 임시 배정 해제)"]
+    M_ReturnSuccess["예약 모듈: 좌석 예약 요청 성공 응답 반환"]
+    End["End"]
+    
+    %% 흐름 연결
+    Start --> A_RequestReservation
+    A_RequestReservation --> B_StartProcess
+    B_StartProcess --> C_CheckToken
+    C_CheckToken --> D_TokenValid
+
+    D_TokenValid -- "No" --> E_InvalidToken --> End
+    D_TokenValid -- "Yes" --> F_CheckSeatAvailability
+
+    F_CheckSeatAvailability --> G_SeatAvailable
+    G_SeatAvailable -- "No" --> H_SeatUnavailable --> End
+    G_SeatAvailable -- "Yes" --> I_LockSeat
+
+    I_LockSeat --> J_UpdateSeatStatus
+    J_UpdateSeatStatus --> K_LockSuccess
+    K_LockSuccess --> L_StartTimer
+    L_StartTimer --> M_ReturnSuccess --> End
+```
+
+## 🏷️ (4) 좌석 예약 요청 API 플로우 차트
+```mermaid
+flowchart TD
+    %% 노드 정의
+    Start["Start"]
+    A_RequestReservation["사용자: 좌석 예약 요청 (날짜, 좌석 번호, 토큰)"]
+    B_TokenValidation["인증 모듈: 토큰 유효성 검증"]
+    C_TokenValid{"토큰이 유효합니까?"}
+    D_InvalidToken["인증 모듈: '유효하지 않은 토큰' 오류 반환"]
+    E_ForwardRequest["인증 모듈: 예약 모듈로 요청 전달"]
+    F_QueueWait["예약 모듈: 좌석 예약 요청 큐 대기"]
+    G_QueueAccess{"큐 접근 성공 여부"}
+    H_QueueFail["예약 모듈: '서버가 혼잡하여 요청을 처리할 수 없습니다' 오류 반환"]
+    I_CheckSeat["예약 모듈: 좌석 예약 상태 확인 및 락 요청"]
+    J_SeatAvailable{"좌석이 예약 가능합니까?"}
+    K_SeatUnavailable["예약 모듈: '해당 좌석은 이미 예약되었습니다' 오류 반환"]
+    L_TemporaryReserve["예약 모듈: 좌석 임시 예약 처리 (5분)"]
+    M_TempReserveSuccess["예약 모듈: 좌석 임시 예약 성공 응답 반환"]
+    N_PaymentRequest["사용자: 결제 요청"]
+    O_PaymentResult["결제 모듈: 결제 결과 알림"]
+    P_PaymentSuccess{"결제가 성공하였습니까?"}
+    Q_ReservationConfirm["예약 모듈: 좌석 예약 확정"]
+    R_ReservationSuccess["예약 모듈: '예약이 완료되었습니다' 응답"]
+    S_PaymentFail["예약 모듈: '결제 중 오류 발생' 응답"]
+    T_StartTimer["예약 모듈: 타이머 시작 (5분 후 예약 해제)"]
+    U_TimerExpired["타이머 만료 (임시 예약 해제)"]
+    V_ReleaseSeat["예약 모듈: 임시 예약 해제"]
+    W_End["End"]
+
+    %% 흐름 연결
+    Start --> A_RequestReservation
+    A_RequestReservation --> B_TokenValidation
+    B_TokenValidation --> C_TokenValid
+
+    C_TokenValid -- "아니오" --> D_InvalidToken --> W_End
+    C_TokenValid -- "예" --> E_ForwardRequest
+
+    E_ForwardRequest --> F_QueueWait
+    F_QueueWait --> G_QueueAccess
+
+    G_QueueAccess -- "아니오" --> H_QueueFail --> W_End
+    G_QueueAccess -- "예" --> I_CheckSeat
+
+    I_CheckSeat --> J_SeatAvailable
+    J_SeatAvailable -- "아니오" --> K_SeatUnavailable --> W_End
+    J_SeatAvailable -- "예" --> L_TemporaryReserve
+
+    L_TemporaryReserve --> M_TempReserveSuccess
+    M_TempReserveSuccess --> N_PaymentRequest
+    N_PaymentRequest --> O_PaymentResult
+    O_PaymentResult --> P_PaymentSuccess
+
+    P_PaymentSuccess -- "예" --> Q_ReservationConfirm --> R_ReservationSuccess --> W_End
+    P_PaymentSuccess -- "아니오" --> S_PaymentFail --> W_End
+
+    %% 타이머 및 임시 예약 만료 처리
+    L_TemporaryReserve --> T_StartTimer
+    T_StartTimer --> U_TimerExpired
+    U_TimerExpired --> V_ReleaseSeat --> W_End
+```
+
+## 🏷️ (5) 잔액 충전 API 플로우 차트
+```mermaid
+flowchart TD
+    %% 노드 정의
+    Start["Start"]
+    A_RequestRecharge["사용자: 잔액 충전 요청 (토큰, 충전 금액)"]
+    B_TokenValidation["인증 모듈: 토큰 유효성 검증 시작"]
+    C_ValidateToken["인증 모듈: 토큰 유효성 확인 (토큰)"]
+    D_TokenValid{"토큰이 유효합니까?"}
+    E_InvalidToken["인증 모듈: '유효하지 않은 토큰' 오류 반환"]
+    F_ForwardRequest["인증 모듈: 결제 모듈로 요청 전달 (사용자 ID, 충전 금액)"]
+    G_StartValidation["결제 모듈: 충전 요청 수신 후 유효성 검증 시작"]
+    H_ValidateAmount["결제 모듈: 충전 금액 유효성 검증"]
+    I_AmountValid{"충전 금액이 유효합니까?"}
+    J_InvalidAmount["결제 모듈: '유효하지 않은 금액입니다' 오류 반환"]
+    K_RechargeRequest["결제 모듈: 잔액 충전 요청 (사용자 ID, 충전 금액)"]
+    L_DBAccess["잔액 DB: 잔액 충전 처리"]
+    M_DBError{"DB 접근 오류가 발생하였습니까?"}
+    N_DBErrorResponse["잔액 DB: 잔액 충전 실패 (DB 오류)"]
+    O_ServerError["결제 모듈: '서버 오류로 인해 충전이 실패했습니다' 오류 반환"]
+    P_RechargeSuccess["잔액 DB: 잔액 충전 성공 (잔액 업데이트)"]
+    Q_ReturnSuccess["결제 모듈: '충전 성공 - 현재 잔액: [잔액 정보]' 응답 반환"]
+    End["End"]
+    
+    %% 흐름 연결
+    Start --> A_RequestRecharge
+    A_RequestRecharge --> B_TokenValidation
+    B_TokenValidation --> C_ValidateToken
+    C_ValidateToken --> D_TokenValid
+
+    D_TokenValid -- "아니오" --> E_InvalidToken --> End
+    D_TokenValid -- "예" --> F_ForwardRequest
+
+    F_ForwardRequest --> G_StartValidation
+    G_StartValidation --> H_ValidateAmount
+    H_ValidateAmount --> I_AmountValid
+
+    I_AmountValid -- "아니오" --> J_InvalidAmount --> End
+    I_AmountValid -- "예" --> K_RechargeRequest
+    K_RechargeRequest --> L_DBAccess
+    L_DBAccess --> M_DBError
+
+    M_DBError -- "예" --> N_DBErrorResponse --> O_ServerError --> End
+    M_DBError -- "아니오" --> P_RechargeSuccess --> Q_ReturnSuccess --> End
+```
+
+## 🏷️ (6) 사용자 잔액 조회 요청 API 플로우 차트
+```mermaid
+flowchart TD
+    %% 노드 정의
+    Start["Start"]
+    A_RequestBalance["사용자: 잔액 조회 요청 (토큰)"]
+    B_TokenValidation["인증 모듈: 토큰 유효성 검증 시작"]
+    C_ValidateToken["인증 모듈: 토큰 유효성 확인 (토큰)"]
+    D_TokenValid{"토큰이 유효합니까?"}
+    E_InvalidToken["인증 모듈: '유효하지 않은 토큰' 오류 반환"]
+    F_ForwardRequest["인증 모듈: 예약 모듈로 요청 전달 (사용자 ID)"]
+    G_BalanceInquiry["예약 모듈: 잔액 조회 요청 처리"]
+    H_DBAccess["예약 모듈: 잔액 DB에 잔액 조회 요청 (사용자 ID)"]
+    I_DBError{"DB 접근 오류가 발생하였습니까?"}
+    J_DBErrorResponse["예약 모듈: '모듈 오류로 인해 잔액 조회가 실패했습니다' 오류 반환"]
+    K_BalanceSuccess["잔액 DB: 잔액 정보 반환 (잔액)"]
+    L_ReturnBalance["예약 모듈: '잔액 조회 성공 - 현재 잔액: [잔액 정보]' 응답 반환"]
+    End["End"]
+    
+    %% 흐름 연결
+    Start --> A_RequestBalance
+    A_RequestBalance --> B_TokenValidation
+    B_TokenValidation --> C_ValidateToken
+    C_ValidateToken --> D_TokenValid
+
+    D_TokenValid -- "아니오" --> E_InvalidToken --> End
+    D_TokenValid -- "예" --> F_ForwardRequest
+
+    F_ForwardRequest --> G_BalanceInquiry
+    G_BalanceInquiry --> H_DBAccess
+    H_DBAccess --> I_DBError
+
+    I_DBError -- "예" --> J_DBErrorResponse --> End
+    I_DBError -- "아니오" --> K_BalanceSuccess --> L_ReturnBalance --> End
+```
+
+## 🏷️ (7) 결제 API 플로우 차트
+```mermaid
+flowchart TD
+    %% 노드 정의
+    Start["Start"]
+    A_RequestPayment["사용자: 결제 요청 (날짜, 좌석 번호, 사용자 ID)"]
+    B_PaymentRequest["예약 모듈: 결제 요청 전달"]
+    C_CreatePaymentRecord["결제 모듈: 결제 내역 생성"]
+    D_PaymentDBError{"결제 DB 접근 오류가 발생하였습니까?"}
+    E_PaymentFail["결제 모듈: 결제 실패 알림"]
+    F_PaymentSuccess["결제 모듈: 결제 내역 생성 성공"]
+    G_PaymentFailResponse["예약 모듈: '결제 중 오류가 발생했습니다' 응답"]
+    H_AssignSeatOwnership["예약 모듈: 좌석 소유권 배정"]
+    I_SeatAssignmentError{"좌석 소유권 배정에 실패하였습니까?"}
+    J_SeatAssignmentFail["예약 모듈: '결제는 완료되었으나 좌석 소유권 배정에 실패했습니다' 응답"]
+    K_SeatAssignmentSuccess["예약 모듈: '결제가 완료되었으며 좌석 소유권이 배정되었습니다' 응답"]
+    L_ExpireQueueToken["예약 모듈: 대기열 토큰 만료 요청"]
+    M_QueueTokenExpireError{"대기열 토큰 만료에 실패하였습니까?"}
+    N_QueueTokenExpireFail["예약 모듈: '결제는 완료되었으나 대기열 토큰 만료에 실패했습니다' 응답"]
+    O_QueueTokenExpireSuccess["예약 모듈: '결제 및 좌석 소유권 배정, 대기열 토큰 만료 처리가 모두 완료되었습니다' 응답"]
+    End["End"]
+    
+    %% 흐름 연결
+    Start --> A_RequestPayment
+    A_RequestPayment --> B_PaymentRequest
+    B_PaymentRequest --> C_CreatePaymentRecord
+    C_CreatePaymentRecord --> D_PaymentDBError
+
+    D_PaymentDBError -- "예" --> E_PaymentFail --> G_PaymentFailResponse --> End
+    D_PaymentDBError -- "아니오" --> F_PaymentSuccess --> H_AssignSeatOwnership
+    H_AssignSeatOwnership --> I_SeatAssignmentError
+
+    I_SeatAssignmentError -- "예" --> J_SeatAssignmentFail --> End
+    I_SeatAssignmentError -- "아니오" --> K_SeatAssignmentSuccess --> L_ExpireQueueToken
+    L_ExpireQueueToken --> M_QueueTokenExpireError
+
+    M_QueueTokenExpireError -- "예" --> N_QueueTokenExpireFail --> End
+    M_QueueTokenExpireError -- "아니오" --> O_QueueTokenExpireSuccess --> End
+```
