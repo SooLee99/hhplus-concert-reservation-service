@@ -81,7 +81,7 @@
 ```mermaid
   sequenceDiagram
   participant User as 사용자
-  participant ReservationServer as 예약 모듈
+  participant ReservationServer as 예약 서비스
   participant ReservationDB as 예약 DB
   
   %% 1️⃣ 예약 가능 날짜 조회 API
@@ -111,14 +111,14 @@
 ```mermaid
     sequenceDiagram
   participant User as 사용자
-  participant ReservationServer as 예약 모듈
+  participant ReservationServer as 예약 서비스
   participant ReservationDB as 예약 DB
   
   %% 2️⃣ 특정 날짜 좌석 정보 조회 API
   User->>ReservationServer: 특정 날짜의 좌석 정보 조회 요청 (날짜 입력)
   Note over ReservationServer: 좌석 정보 조회 시작
   
-  %% 예약 모듈에서 좌석 정보 조회
+  %% 예약 서비스에서 좌석 정보 조회
   ReservationServer->>ReservationDB: 해당 날짜의 좌석 상태 조회 (1 ~ 50번 좌석)
   
   alt 좌석 정보 존재
@@ -148,12 +148,12 @@
 ```mermaid
   sequenceDiagram
   participant User as 사용자
-  participant AuthServer as 인증 모듈
+  participant AuthServer as 인증 서비스
   participant TokenDB as 토큰 DB
-  participant ReservationServer as 예약 모듈
+  participant ReservationServer as 예약 서비스
   participant QueueSystem as 대기열 Queue
   participant ReservationDB as 예약 DB
-  participant PaymentServer as 결제 모듈
+  participant PaymentServer as 결제 서비스
   
   %% 1️⃣ 사용자 좌석 예약 요청 시나리오
   User->>AuthServer: 좌석 예약 요청 (날짜, 좌석 번호, 토큰)
@@ -231,9 +231,9 @@
 ```mermaid
   sequenceDiagram
   participant User as 사용자
-  participant AuthServer as 인증 모듈
+  participant AuthServer as 인증 서비스
   participant TokenDB as 토큰 DB
-  participant ReservationServer as 결제 모듈
+  participant ReservationServer as 결제 서비스
   participant BalanceDB as 잔액 DB
   
   %% 1️⃣ 사용자 잔액 충전 요청 시나리오
@@ -276,9 +276,9 @@
   sequenceDiagram
   %% 참가자 정의
   participant User as 사용자
-  participant AuthServer as 인증 모듈
+  participant AuthServer as 인증 서비스
   participant TokenDB as 토큰 DB
-  participant ReservationServer as 결제 모듈
+  participant ReservationServer as 결제 서비스
   participant BalanceDB as 잔액 DB
   
   %% 1️⃣ 사용자 잔액 조회 요청 시나리오
@@ -314,9 +314,9 @@
 ```mermaid
   sequenceDiagram
     participant User as 사용자
-    participant ReservationServer as 예약 모듈
+    participant ReservationServer as 예약 서비스
     participant ReservationDB as 예약 DB
-    participant PaymentServer as 결제 모듈
+    participant PaymentServer as 결제 서비스
     participant PaymentDB as 결제 DB
     participant QueueSystem as 대기열 Queue
     
@@ -367,16 +367,16 @@ flowchart TD
     %% 노드 정의
     Start["Start"]
     TokenRequest["사용자가 토큰 발급 요청 (UUID)"]
-    CheckUser["인증 모듈: 사용자 존재 여부 확인"]
+    CheckUser["인증 서비스: 사용자 존재 여부 확인"]
     UserExists{"사용자가 존재합니까?"}
-    InvalidUser["인증 모듈: '유효하지 않은 사용자' 에러 반환"]
-    GetUserInfo["인증 모듈: 사용자 정보 조회"]
-    CheckToken["인증 모듈: 기존 토큰 존재 여부 확인"]
+    InvalidUser["인증 서비스: '유효하지 않은 사용자' 에러 반환"]
+    GetUserInfo["인증 서비스: 사용자 정보 조회"]
+    CheckToken["인증 서비스: 기존 토큰 존재 여부 확인"]
     TokenExists{"기존 토큰이 존재합니까?"}
-    TokenError["인증 모듈: '이미 활성화된 토큰이 존재합니다' 에러 반환"]
-    CreateToken["인증 모듈: 새로운 토큰 생성"]
-    CreateQueue["인증 모듈: 새로운 대기열 정보 생성"]
-    ReturnInfo["인증 모듈: 새로운 토큰 및 대기열 정보 반환"]
+    TokenError["인증 서비스: '이미 활성화된 토큰이 존재합니다' 에러 반환"]
+    CreateToken["인증 서비스: 새로운 토큰 생성"]
+    CreateQueue["인증 서비스: 새로운 대기열 정보 생성"]
+    ReturnInfo["인증 서비스: 새로운 토큰 및 대기열 정보 반환"]
     End["End"]
     
     %% 흐름 연결
@@ -395,12 +395,12 @@ flowchart TD
     %% 노드 정의
     Start["Start"]
     A_RequestDates["사용자: 예약 가능 날짜 조회 요청"]
-    B_StartLookup["예약 모듈: 날짜 정보 조회 시작"]
-    F_QueryDates["예약 모듈: 예약 가능 날짜 목록 조회"]
+    B_StartLookup["예약 서비스: 날짜 정보 조회 시작"]
+    F_QueryDates["예약 서비스: 예약 가능 날짜 목록 조회"]
     G_DBAccessFailed{"DB 접근 실패 여부"}
     H_DatesAvailable{"예약 가능한 날짜 존재 여부"}
-    I_NoDates["예약 모듈: '예약 가능한 날짜가 없습니다' 에러 반환"]
-    J_ReturnDates["예약 모듈: 예약 가능 날짜 정보 반환"]
+    I_NoDates["예약 서비스: '예약 가능한 날짜가 없습니다' 에러 반환"]
+    J_ReturnDates["예약 서비스: 예약 가능 날짜 정보 반환"]
     End["End"]
 
     %% 흐름 연결
@@ -422,14 +422,14 @@ flowchart TD
     %% 노드 정의
     Start["Start"]
     A_RequestSeats["사용자: 특정 날짜의 좌석 정보 조회 요청 (날짜 입력)"]
-    B_StartLookup["예약 모듈: 좌석 정보 조회 시작"]
-    C_QuerySeats["예약 모듈: 해당 날짜의 좌석 상태 조회 (1 ~ 50번 좌석)"]
+    B_StartLookup["예약 서비스: 좌석 정보 조회 시작"]
+    C_QuerySeats["예약 서비스: 해당 날짜의 좌석 상태 조회 (1 ~ 50번 좌석)"]
     D_DBAccessFailed{"DB 접근 실패 여부"}
-    E_ServerError["예약 모듈: '서버 오류로 인해 좌석 정보를 조회할 수 없습니다' 에러 반환"]
+    E_ServerError["예약 서비스: '서버 오류로 인해 좌석 정보를 조회할 수 없습니다' 에러 반환"]
     F_SeatsAvailable{"좌석 정보 존재 여부"}
-    G_NoSeats["예약 모듈: '해당 날짜에 대한 좌석 정보가 존재하지 않습니다' 에러 반환"]
-    H_ReturnAllSeatsReserved["예약 모듈: '모든 좌석이 이미 예약되었습니다' 메시지 반환"]
-    I_ReturnAvailableSeats["예약 모듈: 좌석 정보 반환 (예: 1번 예약, 2번 예약 가능 등)"]
+    G_NoSeats["예약 서비스: '해당 날짜에 대한 좌석 정보가 존재하지 않습니다' 에러 반환"]
+    H_ReturnAllSeatsReserved["예약 서비스: '모든 좌석이 이미 예약되었습니다' 메시지 반환"]
+    I_ReturnAvailableSeats["예약 서비스: 좌석 정보 반환 (예: 1번 예약, 2번 예약 가능 등)"]
     End["End"]
 
     %% 흐름 연결
@@ -455,27 +455,27 @@ flowchart TD
     %% 노드 정의
     Start["Start"]
     A_RequestReservation["사용자: 좌석 예약 요청 (날짜, 좌석 번호, 토큰)"]
-    B_TokenValidation["인증 모듈: 토큰 유효성 검증"]
+    B_TokenValidation["인증 서비스: 토큰 유효성 검증"]
     C_TokenValid{"토큰이 유효합니까?"}
-    D_InvalidToken["인증 모듈: '유효하지 않은 토큰' 오류 반환"]
-    E_ForwardRequest["인증 모듈: 예약 모듈로 요청 전달"]
-    F_QueueWait["예약 모듈: 좌석 예약 요청 큐 대기"]
+    D_InvalidToken["인증 서비스: '유효하지 않은 토큰' 오류 반환"]
+    E_ForwardRequest["인증 서비스: 예약 서비스로 요청 전달"]
+    F_QueueWait["예약 서비스: 좌석 예약 요청 큐 대기"]
     G_QueueAccess{"큐 접근 성공 여부"}
-    H_QueueFail["예약 모듈: '서버가 혼잡하여 요청을 처리할 수 없습니다' 오류 반환"]
-    I_CheckSeat["예약 모듈: 좌석 예약 상태 확인 및 락 요청"]
+    H_QueueFail["예약 서비스: '서버가 혼잡하여 요청을 처리할 수 없습니다' 오류 반환"]
+    I_CheckSeat["예약 서비스: 좌석 예약 상태 확인 및 락 요청"]
     J_SeatAvailable{"좌석이 예약 가능합니까?"}
-    K_SeatUnavailable["예약 모듈: '해당 좌석은 이미 예약되었습니다' 오류 반환"]
-    L_TemporaryReserve["예약 모듈: 좌석 임시 예약 처리 (5분)"]
-    M_TempReserveSuccess["예약 모듈: 좌석 임시 예약 성공 응답 반환"]
+    K_SeatUnavailable["예약 서비스: '해당 좌석은 이미 예약되었습니다' 오류 반환"]
+    L_TemporaryReserve["예약 서비스: 좌석 임시 예약 처리 (5분)"]
+    M_TempReserveSuccess["예약 서비스: 좌석 임시 예약 성공 응답 반환"]
     N_PaymentRequest["사용자: 결제 요청"]
-    O_PaymentResult["결제 모듈: 결제 결과 알림"]
+    O_PaymentResult["결제 서비스: 결제 결과 알림"]
     P_PaymentSuccess{"결제가 성공하였습니까?"}
-    Q_ReservationConfirm["예약 모듈: 좌석 예약 확정"]
-    R_ReservationSuccess["예약 모듈: '예약이 완료되었습니다' 응답"]
-    S_PaymentFail["예약 모듈: '결제 중 오류 발생' 응답"]
-    T_StartTimer["예약 모듈: 타이머 시작 (5분 후 예약 해제)"]
+    Q_ReservationConfirm["예약 서비스: 좌석 예약 확정"]
+    R_ReservationSuccess["예약 서비스: '예약이 완료되었습니다' 응답"]
+    S_PaymentFail["예약 서비스: '결제 중 오류 발생' 응답"]
+    T_StartTimer["예약 서비스: 타이머 시작 (5분 후 예약 해제)"]
     U_TimerExpired["타이머 만료 (임시 예약 해제)"]
-    V_ReleaseSeat["예약 모듈: 임시 예약 해제"]
+    V_ReleaseSeat["예약 서비스: 임시 예약 해제"]
     W_End["End"]
 
     %% 흐름 연결
@@ -516,22 +516,22 @@ flowchart TD
     %% 노드 정의
     Start["Start"]
     A_RequestRecharge["사용자: 잔액 충전 요청 (토큰, 충전 금액)"]
-    B_TokenValidation["인증 모듈: 토큰 유효성 검증 시작"]
-    C_ValidateToken["인증 모듈: 토큰 유효성 확인 (토큰)"]
+    B_TokenValidation["인증 서비스: 토큰 유효성 검증 시작"]
+    C_ValidateToken["인증 서비스: 토큰 유효성 확인 (토큰)"]
     D_TokenValid{"토큰이 유효합니까?"}
-    E_InvalidToken["인증 모듈: '유효하지 않은 토큰' 오류 반환"]
-    F_ForwardRequest["인증 모듈: 결제 모듈로 요청 전달 (사용자 ID, 충전 금액)"]
-    G_StartValidation["결제 모듈: 충전 요청 수신 후 유효성 검증 시작"]
-    H_ValidateAmount["결제 모듈: 충전 금액 유효성 검증"]
+    E_InvalidToken["인증 서비스: '유효하지 않은 토큰' 오류 반환"]
+    F_ForwardRequest["인증 서비스: 결제 서비스로 요청 전달 (사용자 ID, 충전 금액)"]
+    G_StartValidation["결제 서비스: 충전 요청 수신 후 유효성 검증 시작"]
+    H_ValidateAmount["결제 서비스: 충전 금액 유효성 검증"]
     I_AmountValid{"충전 금액이 유효합니까?"}
-    J_InvalidAmount["결제 모듈: '유효하지 않은 금액입니다' 오류 반환"]
-    K_RechargeRequest["결제 모듈: 잔액 충전 요청 (사용자 ID, 충전 금액)"]
+    J_InvalidAmount["결제 서비스: '유효하지 않은 금액입니다' 오류 반환"]
+    K_RechargeRequest["결제 서비스: 잔액 충전 요청 (사용자 ID, 충전 금액)"]
     L_DBAccess["잔액 DB: 잔액 충전 처리"]
     M_DBError{"DB 접근 오류가 발생하였습니까?"}
     N_DBErrorResponse["잔액 DB: 잔액 충전 실패 (DB 오류)"]
-    O_ServerError["결제 모듈: '서버 오류로 인해 충전이 실패했습니다' 오류 반환"]
+    O_ServerError["결제 서비스: '서버 오류로 인해 충전이 실패했습니다' 오류 반환"]
     P_RechargeSuccess["잔액 DB: 잔액 충전 성공 (잔액 업데이트)"]
-    Q_ReturnSuccess["결제 모듈: '충전 성공 - 현재 잔액: [잔액 정보]' 응답 반환"]
+    Q_ReturnSuccess["결제 서비스: '충전 성공 - 현재 잔액: [잔액 정보]' 응답 반환"]
     End["End"]
     
     %% 흐름 연결
@@ -562,17 +562,17 @@ flowchart TD
     %% 노드 정의
     Start["Start"]
     A_RequestBalance["사용자: 잔액 조회 요청 (토큰)"]
-    B_TokenValidation["인증 모듈: 토큰 유효성 검증 시작"]
-    C_ValidateToken["인증 모듈: 토큰 유효성 확인 (토큰)"]
+    B_TokenValidation["인증 서비스: 토큰 유효성 검증 시작"]
+    C_ValidateToken["인증 서비스: 토큰 유효성 확인 (토큰)"]
     D_TokenValid{"토큰이 유효합니까?"}
-    E_InvalidToken["인증 모듈: '유효하지 않은 토큰' 오류 반환"]
-    F_ForwardRequest["인증 모듈: 예약 모듈로 요청 전달 (사용자 ID)"]
-    G_BalanceInquiry["예약 모듈: 잔액 조회 요청 처리"]
-    H_DBAccess["예약 모듈: 잔액 DB에 잔액 조회 요청 (사용자 ID)"]
+    E_InvalidToken["인증 서비스: '유효하지 않은 토큰' 오류 반환"]
+    F_ForwardRequest["인증 서비스: 예약 서비스로 요청 전달 (사용자 ID)"]
+    G_BalanceInquiry["예약 서비스: 잔액 조회 요청 처리"]
+    H_DBAccess["예약 서비스: 잔액 DB에 잔액 조회 요청 (사용자 ID)"]
     I_DBError{"DB 접근 오류가 발생하였습니까?"}
-    J_DBErrorResponse["예약 모듈: '모듈 오류로 인해 잔액 조회가 실패했습니다' 오류 반환"]
+    J_DBErrorResponse["예약 서비스: '서버버 오류로 인해 잔액 조회가 실패했습니다' 오류 반환"]
     K_BalanceSuccess["잔액 DB: 잔액 정보 반환 (잔액)"]
-    L_ReturnBalance["예약 모듈: '잔액 조회 성공 - 현재 잔액: [잔액 정보]' 응답 반환"]
+    L_ReturnBalance["예약 서비스: '잔액 조회 성공 - 현재 잔액: [잔액 정보]' 응답 반환"]
     End["End"]
     
     %% 흐름 연결
@@ -598,20 +598,20 @@ flowchart TD
     %% 노드 정의
     Start["Start"]
     A_RequestPayment["사용자: 결제 요청 (날짜, 좌석 번호, 사용자 ID)"]
-    B_PaymentRequest["예약 모듈: 결제 요청 전달"]
-    C_CreatePaymentRecord["결제 모듈: 결제 내역 생성"]
+    B_PaymentRequest["예약 서비스: 결제 요청 전달"]
+    C_CreatePaymentRecord["결제 서비스: 결제 내역 생성"]
     D_PaymentDBError{"결제 DB 접근 오류가 발생하였습니까?"}
-    E_PaymentFail["결제 모듈: 결제 실패 알림"]
-    F_PaymentSuccess["결제 모듈: 결제 내역 생성 성공"]
-    G_PaymentFailResponse["예약 모듈: '결제 중 오류가 발생했습니다' 응답"]
-    H_AssignSeatOwnership["예약 모듈: 좌석 소유권 배정"]
+    E_PaymentFail["결제 서비스: 결제 실패 알림"]
+    F_PaymentSuccess["결제 서비스: 결제 내역 생성 성공"]
+    G_PaymentFailResponse["예약 서비스: '결제 중 오류가 발생했습니다' 응답"]
+    H_AssignSeatOwnership["예약 서비스: 좌석 소유권 배정"]
     I_SeatAssignmentError{"좌석 소유권 배정에 실패하였습니까?"}
-    J_SeatAssignmentFail["예약 모듈: '결제는 완료되었으나 좌석 소유권 배정에 실패했습니다' 응답"]
-    K_SeatAssignmentSuccess["예약 모듈: '결제가 완료되었으며 좌석 소유권이 배정되었습니다' 응답"]
-    L_ExpireQueueToken["예약 모듈: 대기열 토큰 만료 요청"]
+    J_SeatAssignmentFail["예약 서비스: '결제는 완료되었으나 좌석 소유권 배정에 실패했습니다' 응답"]
+    K_SeatAssignmentSuccess["예약 서비스: '결제가 완료되었으며 좌석 소유권이 배정되었습니다' 응답"]
+    L_ExpireQueueToken["예약 서비스: 대기열 토큰 만료 요청"]
     M_QueueTokenExpireError{"대기열 토큰 만료에 실패하였습니까?"}
-    N_QueueTokenExpireFail["예약 모듈: '결제는 완료되었으나 대기열 토큰 만료에 실패했습니다' 응답"]
-    O_QueueTokenExpireSuccess["예약 모듈: '결제 및 좌석 소유권 배정, 대기열 토큰 만료 처리가 모두 완료되었습니다' 응답"]
+    N_QueueTokenExpireFail["예약 서비스: '결제는 완료되었으나 대기열 토큰 만료에 실패했습니다' 응답"]
+    O_QueueTokenExpireSuccess["예약 서비스: '결제 및 좌석 소유권 배정, 대기열 토큰 만료 처리가 모두 완료되었습니다' 응답"]
     End["End"]
     
     %% 흐름 연결
