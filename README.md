@@ -15,11 +15,11 @@
 ```mermaid
     sequenceDiagram
     participant User as 사용자
-    participant AuthServer as 인증 모듈
+    participant AuthServer as 인증 서비스
     participant UserDB as 사용자 DB
     participant TokenDB as 토큰 DB
     participant QueueDB as 대기열 Queue
-    participant ReservationSystem as 예약 모듈
+    participant ReservationSystem as 예약 서비스
     
     %% 1️⃣ 사용자 대기열 토큰 발급 및 실시간 정보 조회 최적화 시퀀스
     User->>AuthServer: 토큰 발급 요청 (UUID)
