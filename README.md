@@ -5,9 +5,6 @@
 ## 📅 프로젝트 전체 일정
 ![마일스톤](https://github.com/user-attachments/assets/3915be84-832a-42d1-8a31-2a37d17afd27)
 
-## 📅 프로젝트 단계별 진행 상황 (Milestone)
-![마일스톤2](https://github.com/user-attachments/assets/a0e95eb4-3f19-4324-a49e-1538eaf32170)
-
 ---
 
 # 📊 시퀀스 다이어그램
