@@ -39,11 +39,7 @@
         %% 5️⃣ 기존 토큰 존재 여부 확인
         AuthServer->>TokenDB: 기존 토큰 존재 여부 확인 (UUID)
         
-        alt 기존 토큰 존재
-            %% 6️⃣ 기존 토큰 정보 반환 및 에러 처리
-            TokenDB-->>AuthServer: 기존 토큰 정보 반환 (토큰, 만료 시간 등)
-            AuthServer-->>User: "이미 활성화된 토큰이 존재합니다" 에러 반환
-        else 기존 토큰 미존재
+        alt 기존 토큰 미존재
             %% 7️⃣ 토큰 생성
             AuthServer->>TokenDB: 새로운 토큰 생성 요청 (UUID, 사용자 정보)
             TokenDB-->>AuthServer: 토큰 생성 완료 (JWT 토큰, 만료 시간 등)
@@ -81,25 +77,36 @@
 ```mermaid
   sequenceDiagram
   participant User as 사용자
-  participant ReservationServer as 예약 서비스
+  participant ReservationServer as 예약 모듈
+  participant QueueDB as 대기열 Queue
   participant ReservationDB as 예약 DB
   
   %% 1️⃣ 예약 가능 날짜 조회 API
   User->>ReservationServer: 예약 가능 날짜 조회 요청
   Note over ReservationServer: 날짜 정보 조회 시작
   
-  %% 예약 가능 날짜 조회 로직
+  %% 대기열 큐에 접근하여 다른 프로세스와 경합 피함
+  ReservationServer->>QueueDB: 날짜 조회 요청 큐 대기 (대기열 등록)
+  alt 큐 접근 성공
+  QueueDB-->>ReservationServer: 큐 진입 성공
   ReservationServer->>ReservationDB: 예약 가능 날짜 목록 조회
   alt 예약 가능한 날짜 없음
   %% 예약 가능한 날짜가 없는 경우
   ReservationDB-->>ReservationServer: "예약 가능한 날짜가 없습니다" 에러 반환
   ReservationServer-->>User: "예약 가능한 날짜가 없습니다" 에러 반환
+  QueueDB-->>ReservationServer: 큐 이탈 (작업 종료)
   else 예약 가능한 날짜 존재
   %% 예약 가능한 날짜가 존재하는 경우
   ReservationDB-->>ReservationServer: 예약 가능 날짜 목록 반환
   ReservationServer-->>User: 예약 가능 날짜 정보 반환
+  QueueDB-->>ReservationServer: 큐 이탈 (작업 종료)
   end
-
+  else 큐 접근 실패
+  %% 큐 접근 실패 시
+  QueueDB-->>ReservationServer: "큐 접근 실패" 에러 반환
+  ReservationServer-->>User: "서버가 혼잡하여 요청을 처리할 수 없습니다" 에러 반환
+  end
+  
   %% 예약 가능 날짜 조회 중 DB 접근 실패 시 처리
   alt DB 접근 실패
   ReservationDB-->>ReservationServer: "DB 접근 실패" 에러 반환
