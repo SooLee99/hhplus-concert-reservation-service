@@ -23,7 +23,8 @@ src
 
 
 ## 📊 **콘서트 예약 시스템 ERD**
-![concert (1)](https://github.com/user-attachments/assets/26bbdd6e-9c21-4529-be1b-1e20d1965a9e)
+![concert (9)](https://github.com/user-attachments/assets/3499f7e3-fc72-4feb-8079-b03b6873e081)
+
 ---
 ## 📑 **API 설계**
 ### (1) 유저 토큰 발급 API 명세서
