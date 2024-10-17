@@ -716,7 +716,7 @@ flowchart TD
 | **HTTP Method**      | `POST`                                                       |
 | **Request Header**   | `Content-Type: application/json`                             |
 | **Request Body**     | `{ "user_id": "string" }`                                    |
-| **Response (성공 시)**| `200 OK` / `{ "token": "string", "queue_position": integer, "estimated_wait_time": integer }` |
+| **Response (성공 시)**| `200 OK` / `{ "queue": "string", "queue_position": integer, "estimated_wait_time": integer }` |
 | **Error Response**   | 다양한 예외에 따른 `404`, `400`, `500` 응답 (아래 에러 목록 참조) |
 | **Authorization**    | 없음 (발급 후 JWT 토큰 사용)                                 |
 
@@ -749,7 +749,7 @@ flowchart TD
 |------------------------|-------------------------------------------------------------|
 | **Endpoint**           | `GET /v1/concerts/available-dates`                                |
 | **HTTP Method**        | `GET`                                                        |
-| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
+| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {queue}` |
 | **Request Query Params**| 없음                                                        |
 | **Response (성공 시)** | `200 OK` / `{ "available_dates": ["YYYY-MM-DD", "YYYY-MM-DD"] }` |
 | **Error Response**     | 다양한 예외에 따른 `400`, `401`, `404`, `500` 응답 (아래 에러 목록 참조) |
@@ -783,7 +783,7 @@ flowchart TD
 |------------------------|-------------------------------------------------------------|
 | **Endpoint**           | `GET /v1/concerts/{concertId}/seats?date={YYYY-MM-DD}`|
 | **HTTP Method**        | `GET`                                                        |
-| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
+| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {queue}` |
 | **Request Query Params**| `date` (필수) - 조회할 날짜 (`YYYY-MM-DD` 형식)               |
 | **Response (성공 시)** | `200 OK` / `{ "date": "YYYY-MM-DD", "seats": [{ "seat_number": integer, "is_reserved": boolean }] }` |
 | **Error Response**     | 다양한 예외에 따른 `400`, `401`, `404`, `500` 응답 (아래 에러 목록 참조) |
@@ -820,7 +820,7 @@ flowchart TD
 |------------------------|-------------------------------------------------------------|
 | **Endpoint**           | `POST /v1/concerts/{concertId}/reservations`                |
 | **HTTP Method**        | `POST`                                                       |
-| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
+| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {queue}` |
 | **Request Body**       | `{ "date": "YYYY-MM-DD", "seat_number": integer }`           |
 | **Response (성공 시)** | `200 OK` / `{ "message": "임시 예약 성공", "reservation_id": "string", "expiration_time": "YYYY-MM-DDTHH:mm:ssZ" }` |
 | **Error Response**     | 다양한 예외에 따른 `400`, `401`, `409`, `500` 응답 (아래 에러 목록 참조) |
@@ -859,7 +859,7 @@ flowchart TD
 |------------------------|-------------------------------------------------------------|
 | **Endpoint**           | `POST /v1/users/{userId}/balance`                                 |
 | **HTTP Method**        | `POST`                                                       |
-| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
+| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {queue}` |
 | **Request Body**       | `{ "amount": number }`                                       |
 | **Response (성공 시)** | `200 OK` / `{ "message": "충전 성공", "current_balance": number }` |
 | **Error Response**     | 다양한 예외에 따른 `400`, `401`, `500` 응답 (아래 에러 목록 참조) |
@@ -890,7 +890,7 @@ flowchart TD
 |------------------------|-------------------------------------------------------------|
 | **Endpoint**           | `GET /v1/users/{userId}/balance`                                          |
 | **HTTP Method**        | `GET`                                                       |
-| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
+| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {queue}` |
 | **Request Query Params**| 없음                                                        |
 | **Response (성공 시)** | `200 OK` / `{ "user_id": "string", "current_balance": number }` |
 | **Error Response**     | 다양한 예외에 따른 `401`, `500` 응답 (아래 에러 목록 참조) |
@@ -917,7 +917,7 @@ flowchart TD
 |------------------------|-------------------------------------------------------------|
 | **Endpoint**           | `POST /v1/concerts/{concertId}/reservations/{reservationId}/payments`             |
 | **HTTP Method**        | `POST`                                                       |
-| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {token}` |
+| **Request Header**     | `Content-Type: application/json`<br> `Authorization: Bearer {queue}` |
 | **Request Body**
 | `{ "reservation_id": "string", "payment_method": "string", "payment_details": {} }` |
 | **Response (성공 시)** | `200 OK` / `{ "message": "결제 성공", "seat_number": integer, "date": "YYYY-MM-DD", "user_id": "string" }` |

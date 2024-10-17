@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'org.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot Starter
+    implementation 'org.springframework.boot:spring-boot-starter-web'  // Web 기능
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'  // Spring Data JPA
+    implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1' // JWT
+    implementation 'org.springframework.boot:spring-boot-starter-websocket' // WebSocket
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+
+    // H2 Database
+    runtimeOnly 'com.h2database:h2'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Test dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'  // JUnit 5 포함
+    testImplementation 'org.springframework:spring-test'  // MockMVC 포함
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
