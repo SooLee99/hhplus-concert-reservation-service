@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Queue Status</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        h1, p {
+            text-align: center;
+        }
+    </style>
+    <script type="text/javascript">
+        // Thymeleaf 변수를 JavaScript로 안전하게 전달
+        let userId = [[${userId}]];
+        console.log("userId: " + userId);
+        const apiUrl = `http://localhost:8080/api/v1/queue/queue-status?userId=${userId}`;
+
+        // 예상 대기 시간을 사람이 읽기 좋은 형식으로 변환하는 함수
+        function formatEstimatedWaitTime(duration) {
+            // 예: PT2M -> 2 minutes
+            const match = duration.match(/PT(\d+)M/);
+            if (match) {
+                return `${match[1]} 분`;
+            }
+            return duration; // 변환 실패 시 원래 문자열 반환
+        }
+
+        async function fetchQueueStatus() {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                const data = await response.json();
+                console.log("Queue status:", data);
+
+                // 데이터를 DOM에 반영
+                document.getElementById("queue-id").innerText = data.queueId;
+                document.getElementById("user-id").innerText = data.userId;
+                document.getElementById("queue-position").innerText = data.queuePosition;
+                document.getElementById("queue-token").innerText = data.queueToken;
+                document.getElementById("issued-time").innerText = data.issuedTime;
+                document.getElementById("status").innerText = data.status;
+                document.getElementById("activation-time").innerText = data.activationTime;
+                document.getElementById("expiration-time").innerText = data.expirationTime;
+                document.getElementById("estimated-wait-time").innerText = formatEstimatedWaitTime(data.estimatedWaitTime);
+                document.getElementById("active").innerText = data.active ? "활성" : "비활성";
+                document.getElementById("max-capacity").innerText = data.maxCapacity;
+                document.getElementById("current-queue-count").innerText = data.currentQueueCount;
+                document.getElementById("token-issued-count").innerText = data.tokenIssuedCount;
+                document.getElementById("waiting-count").innerText = data.waitingCount;
+                document.getElementById("finished-count").innerText = data.finishedCount;
+            } catch (error) {
+                console.error("Error fetching queue status:", error);
+            }
+        }
+
+        // 페이지 로드 후 5초마다 대기열 상태를 가져옵니다.
+        setInterval(fetchQueueStatus, 5000);
+        window.onload = fetchQueueStatus; // 페이지 로드 시 즉시 호출
+    </script>
+</head>
+<body>
+<h1>대기열 상태</h1>
+<p>대기열 ID: <span id="queue-id">-</span></p>
+<p>유저 ID: <span id="user-id">-</span></p>
+<p>현재 위치: <span id="queue-position">-</span></p>
+<p>토큰: <span id="queue-token">-</span></p>
+<p>발급 시간: <span id="issued-time">-</span></p>
+<p>상태: <span id="status">-</span></p>
+<p>활성화 시간: <span id="activation-time">-</span></p>
+<p>만료 시간: <span id="expiration-time">-</span></p>
+<p>예상 대기 시간: <span id="estimated-wait-time">-</span></p>
+<p>활성 여부: <span id="active">-</span></p>
+<p>최대 수용 인원: <span id="max-capacity">-</span></p>
+<p>현재 대기열 수: <span id="current-queue-count">-</span></p>
+<p>발급된 토큰 수: <span id="token-issued-count">-</span></p>
+<p>대기 중인 사용자 수: <span id="waiting-count">-</span></p>
+<p>입장 완료된 사용자 수: <span id="finished-count">-</span></p>
+</body>
+</html>
