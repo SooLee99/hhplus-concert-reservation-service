@@ -12,9 +12,6 @@ import java.util.List;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
-    // 예약 가능한 날짜 목록을 반환
-    List<Reservation> findByReservationDateAfterAndSeatsAvailableGreaterThan(LocalDate date, int seatsAvailable);
-
     @Query("SELECT r.seatId FROM Reservation r WHERE r.reservationTime = :date AND r.reservationStatus = 'CONFIRMED'")
     List<Long> findReservedSeatIdsByDate(LocalDateTime date);
 

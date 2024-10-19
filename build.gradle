@@ -20,13 +20,16 @@ repositories {
 dependencies {
     // Spring Boot Starter
     implementation 'org.springframework.boot:spring-boot-starter-web'  // Web 기능
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'  // Spring Data JPA
     implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1' // JWT
     implementation 'org.springframework.boot:spring-boot-starter-websocket' // WebSocket
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+
+    // OpenAPI Documentation
+    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 
     // H2 Database
     runtimeOnly 'com.h2database:h2'
@@ -38,8 +41,11 @@ dependencies {
     // Test dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'  // JUnit 5 포함
     testImplementation 'org.springframework:spring-test'  // MockMVC 포함
-}
 
+    // JUnit 5 명시적 추가
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+}
 
 tasks.named('test') {
     useJUnitPlatform()

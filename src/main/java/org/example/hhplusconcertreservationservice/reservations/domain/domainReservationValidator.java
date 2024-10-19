@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * 예약 요청에 대한 유효성을 검사하는 클래스
  */
 @Component
-public class ReservationValidator {
+public class domainReservationValidator {
 
     /**
      * 좌석 예약 요청의 유효성을 검사하는 메서드
