@@ -59,14 +59,16 @@ INSERT INTO payments (amount, payment_status, payment_time, created_at, updated_
 VALUES (100000.00, 'COMPLETED', NOW(), NOW(), NOW()),
        (50000.00, 'PENDING', NOW(), NOW(), NOW());
 
-INSERT INTO reservations (payment_id, schedule_id, user_id, seat_id, reservation_status, reservation_time, expiration_time, created_at, updated_at)
+INSERT INTO reservations (payment_id, schedule_id, user_id, seat_id, reservation_status, reservation_time, expiration_time, reservation_date, created_at, updated_at)
 VALUES
-    (1, 1, 1, 1, 'CONFIRMED', NOW(), DATEADD(DAY, 1, NOW()), NOW(), NOW()),
-    (2, 1, 2, 2, 'TEMPORARY', NOW(), DATEADD(DAY, 1, NOW()), NOW(), NOW());
+    (1, 1, 1, 1, 'CONFIRMED', NOW(), DATEADD(DAY, 1, NOW()), NOW(), NOW(), NOW()),
+    (2, 1, 2, 2, 'PENDING', NOW(), DATEADD(DAY, 1, NOW()), NOW(), NOW(), NOW());
 
-INSERT INTO seats (seat_type_id, schedule_id, seat_number, created_at, updated_at)
-VALUES (1, 1, 101, NOW(), NOW()),
-       (1, 1, 102, NOW(), NOW());
+INSERT INTO seats (seat_type_id, schedule_id, seat_number, is_reserved, created_at, updated_at)
+VALUES
+    (1, 1, 101, false, NOW(), NOW()),
+    (1, 1, 102, false, NOW(), NOW());
+
 
 INSERT INTO seat_types (concert_id, price, seat_type_name, created_at, updated_at)
 VALUES (1, 50000.00, 'VIP', NOW(), NOW()),

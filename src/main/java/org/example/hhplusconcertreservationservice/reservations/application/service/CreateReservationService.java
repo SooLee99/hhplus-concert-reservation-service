@@ -21,12 +21,12 @@ public class CreateReservationService {
 
     private final ReservationRepository reservationRepository;
     private final SeatRepository seatRepository;
-    private final ReservationValidator reservationValidator;
+    private final applicationReservationValidator applicationReservationValidator;
 
     @Transactional
     public CreateReservationResponse createReservation(CreateReservationRequest request) {
         // 1. 요청 유효성 검증
-        reservationValidator.validate(request);
+        applicationReservationValidator.validate(request);
 
         // 2. 좌석이 존재하고 예약 가능한지 확인
         Seat seat = seatRepository.findById(request.getSeatId())

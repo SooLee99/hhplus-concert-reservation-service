@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AccessLevel;
 import lombok.Builder;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -40,6 +42,8 @@ public class Reservation extends BaseEntity {
     @Column(name = "expiration_time", nullable = false)
     private LocalDateTime expirationTime;   // 만료 시간 필드
 
+    @Column(name = "reservation_date", nullable = false)
+    private LocalDate reservationDate;
     @PrePersist
     protected void onCreate() {
         this.reservationTime = LocalDateTime.now();  // 기본적으로 예약 시간 설정
