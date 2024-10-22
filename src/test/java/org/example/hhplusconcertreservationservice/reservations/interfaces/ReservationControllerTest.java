@@ -44,14 +44,7 @@ class ReservationControllerTest {
 
     @MockBean
     private CreateReservationService createReservationService;
-<<<<<<< HEAD
     private ObjectMapper objectMapper = new ObjectMapper();
-=======
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
->>>>>>> origin/main
     @Test
     @DisplayName("예약 가능한 날짜 목록을 성공적으로 조회한다")
     void testGetAvailableDates_Success() throws Exception {
