@@ -1,27 +1,34 @@
 package org.example.hhplusconcertreservationservice.reservations.application.facade;
 
-import org.example.hhplusconcertreservationservice.payments.application.service.PaymentService;
-import org.example.hhplusconcertreservationservice.reservations.application.service.ReservationService;
-import org.example.hhplusconcertreservationservice.users.application.service.queue.QueueService;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import org.example.hhplusconcertreservationservice.reservations.application.dto.request.SeatInfoRequest;
+import org.example.hhplusconcertreservationservice.reservations.application.usecase.GetAvailableDatesUseCase;
+import org.example.hhplusconcertreservationservice.reservations.application.usecase.GetSeatInfoByDateUseCase;
+import org.example.hhplusconcertreservationservice.reservations.application.service.CreateReservationService;
+import org.example.hhplusconcertreservationservice.reservations.interfaces.dto.request.CreateReservationRequest;
+import org.example.hhplusconcertreservationservice.reservations.interfaces.dto.request.TokenRequest;
+import org.example.hhplusconcertreservationservice.reservations.interfaces.dto.response.CreateReservationResponse;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Map;
 
-@Component
+@Service
+@RequiredArgsConstructor
 public class ReservationFacade {
 
-    private final QueueService queueService;
-    private final ReservationService reservationService;
-    private final PaymentService paymentService;
+    private final GetAvailableDatesUseCase getAvailableDatesUseCase;
+    private final GetSeatInfoByDateUseCase getSeatInfoByDateUseCase;
+    private final CreateReservationService createReservationService;
 
-    public ReservationFacade(QueueService queueService, ReservationService reservationService, PaymentService paymentService) {
-        this.queueService = queueService;
-        this.reservationService = reservationService;
-        this.paymentService = paymentService;
+    public List<Map<String, Object>> getAvailableDates(TokenRequest tokenRequest) {
+        return getAvailableDatesUseCase.getAvailableDates(tokenRequest.getToken());
     }
 
-    // 전체 예약 프로세스 처리
-    public void makeReservation(/* 필요한 매개변수 */) {
-        // TODO: 대기열 확인
-        // TODO: 좌석 예약
-        // TODO: 결제 처리
+    public Map<String, Object> getSeatInfoByDate(SeatInfoRequest request) {
+        return getSeatInfoByDateUseCase.getSeatInfoByDateTime(request.getDate(), request.getToken());
+    }
+
+    public CreateReservationResponse createReservation(CreateReservationRequest request) {
+        return createReservationService.createReservation(request);
     }
 }

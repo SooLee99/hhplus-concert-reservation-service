@@ -1,10 +1,14 @@
 package org.example.hhplusconcertreservationservice.reservations.interfaces.dto.response;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.example.hhplusconcertreservationservice.reservations.domain.entity.Reservation;
 
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateReservationResponse {
     private Long reservationId;
     private Long userId;

@@ -14,9 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class QueueStatusController {
     @GetMapping("/queue-status")
-    public String getQueueStatus(@RequestParam(name = "userId") Long userId, Model model) {
+    public String getQueueStatus(@RequestParam("userId") Long userId, Model model) {
         model.addAttribute("userId", userId);
         return "queue-status";
     }
 }
-

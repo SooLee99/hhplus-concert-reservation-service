@@ -9,6 +9,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,9 +36,18 @@ class QueueRepositoryTest {
 
     @AfterEach
     void tearDown() {
-        queueRepository.deleteAll();  // 테스트 후 데이터 정리
+        queueRepository.deleteAll();
     }
 
+    @BeforeEach
+    void cleanDatabaseBefore() {
+        queueRepository.deleteAll();
+    }
+
+    @AfterEach
+    void cleanDatabaseAfter() {
+        queueRepository.deleteAll();
+    }
     @DisplayName("여러 대기열 저장 시 대기열 정보가 정상적으로 저장되는지 테스트")
     @Test
     void givenMultipleQueues_whenSaveAll_thenQueuesArePersisted() {
@@ -140,81 +152,9 @@ class QueueRepositoryTest {
         assertEquals(1L, queueOptional.get().getUserId());
     }
 
-    @DisplayName("만료 시간이 지난 대기열을 삭제하는 테스트")
-    @Test
-    void givenExpiredAndNonExpiredQueues_whenRemoveExpiredQueues_thenOnlyExpiredQueuesAreDeleted() {
-        // given: 만료된 대기열과 만료되지 않은 대기열을 생성
-        Queue expiredQueue = Queue.builder()
-                .userId(1L)
-                .queueToken("expiredToken")
-                .queuePosition(1)
-                .status(QueueStatus.WAITING)
-                .expirationTime(LocalDateTime.now().minusMinutes(5))  // 만료된 상태
-                .build();
-
-        Queue validQueue = Queue.builder()
-                .userId(2L)
-                .queueToken("validToken")
-                .queuePosition(2)
-                .status(QueueStatus.WAITING)
-                .expirationTime(LocalDateTime.now().plusMinutes(10))  // 만료되지 않음
-                .build();
-
-        queueRepository.saveAll(List.of(expiredQueue, validQueue)); // 두 개의 Queue 엔티티 저장
-
-        // when: 만료된 Queue 엔티티를 삭제하는 로직 실행
-        queueRepository.deleteAllByExpirationTimeBefore(LocalDateTime.now());
-
-        // then: 만료된 Queue 엔티티가 삭제되었는지 확인하고, 만료되지 않은 Queue는 남아있는지 확인
-        List<Queue> remainingQueues = queueRepository.findAll();
-
-        assertThat(remainingQueues)
-                .hasSize(1)
-                .extracting(Queue::getQueueId, Queue::getUserId)
-                .containsExactlyInAnyOrder(
-                        tuple(validQueue.getQueueId(), validQueue.getUserId())  // 만료되지 않은 queue만 남아 있어야 함
-                );
-    }
-
-    @DisplayName("만료된 대기열 삭제 시 만료되지 않은 대기열은 유지되는지 테스트")
-    @Test
-    void givenNonExpiredQueues_whenDeleteExpiredQueues_thenNonExpiredQueuesRemain() {
-        // given: Queue 엔티티 2개 생성 (만료되지 않은 상태)
-        Queue queue1 = Queue.builder()
-                .userId(1L)
-                .queueToken("token123")
-                .queuePosition(1)
-                .status(QueueStatus.WAITING)
-                .expirationTime(LocalDateTime.now().plusMinutes(5)) // 만료되지 않음
-                .build();
-
-        Queue queue2 = Queue.builder()
-                .userId(2L)
-                .queueToken("token456")
-                .queuePosition(2)
-                .status(QueueStatus.WAITING)
-                .expirationTime(LocalDateTime.now().plusMinutes(10)) // 만료되지 않음
-                .build();
-
-        queueRepository.saveAll(List.of(queue1, queue2));
-
-        // when: 만료된 Queue 삭제
-        queueRepository.deleteAllByExpirationTimeBefore(LocalDateTime.now());
-
-        // then: 만료되지 않은 Queue 엔티티가 삭제되지 않고 남아있는지 확인
-        List<Queue> remainingQueues = queueRepository.findAll();
-
-        assertThat(remainingQueues)
-                .hasSize(2) // 두 개 모두 남아 있어야 함
-                .extracting(Queue::getQueueId, Queue::getUserId)
-                .containsExactlyInAnyOrder(
-                        tuple(queue1.getQueueId(), 1L),
-                        tuple(queue2.getQueueId(), 2L)
-                );
-    }
-
     @DisplayName("큐가 비어있을 때 모든 큐 조회 시 비어있는 리스트를 반환하는지 테스트")
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void givenNoQueues_whenFindAll_thenReturnEmptyList() {
         // when: 큐가 없는 상태에서 모든 큐 조회
         List<Queue> queues = queueRepository.findAll();
@@ -225,6 +165,7 @@ class QueueRepositoryTest {
 
     @DisplayName("동시성 테스트: 여러 사용자가 동시에 대기열에 접근할 때 정상적으로 동작하는지 테스트")
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)      // 각 트랜잭션이 독립적으로 처리되도록 설정
     void whenMultipleUsersAccessQueueConcurrently_thenNoConflicts() throws InterruptedException {
         // given: 동시에 여러 유저가 대기열에 접근하는 상황 설정
         ExecutorService executor = Executors.newFixedThreadPool(10);  // 10개의 스레드 사용

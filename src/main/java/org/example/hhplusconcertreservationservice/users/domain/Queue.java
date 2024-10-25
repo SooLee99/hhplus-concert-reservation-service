@@ -58,12 +58,13 @@ public class Queue extends BaseEntity {
     }
 
     @Builder
-    public Queue(Long userId, Duration estimatedWaitTime, int queuePosition, String queueToken, QueueStatus status, LocalDateTime expirationTime, LocalDateTime activationTime) {
+    public Queue(Long userId, Duration estimatedWaitTime, int queuePosition, String queueToken, QueueStatus status, LocalDateTime issuedTime, LocalDateTime expirationTime, LocalDateTime activationTime) {
         this.userId = userId;
         this.queuePosition = queuePosition;
         this.estimatedWaitTime = estimatedWaitTime;
         this.queueToken = queueToken;
         this.status = status;
+        this.issuedTime = issuedTime;
         this.expirationTime = expirationTime;
         this.activationTime = activationTime;
         this.isActive = true;  // 기본 활성화 설정

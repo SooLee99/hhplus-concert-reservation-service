@@ -1,10 +1,12 @@
 package org.example.hhplusconcertreservationservice.reservations.application.usecase;
 
-import org.example.hhplusconcertreservationservice.reservations.interfaces.dto.response.SeatInfoResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Map;
 
 public interface GetSeatInfoByDateUseCase {
-    List<SeatInfoResponse> getSeatInfoByDate(LocalDateTime date);
+
+    @Transactional(readOnly = true)
+    Map<String, Object> getSeatInfoByDateTime(LocalDateTime date, String token);
 }

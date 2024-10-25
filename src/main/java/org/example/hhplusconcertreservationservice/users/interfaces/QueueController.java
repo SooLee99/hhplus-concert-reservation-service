@@ -21,12 +21,12 @@ public class QueueController {
      * @return 대기열 토큰 발급 응답
      */
     @PostMapping("/issue-token")
-    public ResponseEntity<InterfacesQueueResponse> issueToken(@RequestParam Long userId) {
+    public ResponseEntity<InterfacesQueueResponse> issueToken(@RequestParam("userId") Long userId) {
         return ResponseEntity.ok(queueFacade.issueToken(userId));
     }
 
     @GetMapping("/queue-status")
-    public ApplicationQueueResponse getQueueStatus(@RequestParam Long userId) {
+    public ApplicationQueueResponse getQueueStatus(@RequestParam("userId") Long userId) {
         return queueFacade.getQueueStatus(userId);
     }
 }

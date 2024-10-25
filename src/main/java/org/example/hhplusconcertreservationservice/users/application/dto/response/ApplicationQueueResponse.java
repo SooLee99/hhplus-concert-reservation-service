@@ -56,13 +56,21 @@ public class ApplicationQueueResponse {
     }
 
     public static ApplicationQueueResponse of(Queue queue, int maxCapacity, int currentQueueCount, List<Queue> allQueues) {
+        // 대기열에서 FINISHED 상태인 사용자를 제외한 나머지 상태별로 사용자 수 계산
         Map<QueueStatus, Long> statusCounts = allQueues.stream()
+                .filter(q -> !q.getStatus().equals(QueueStatus.FINISHED))  // FINISHED 상태 제외
                 .collect(Collectors.groupingBy(Queue::getStatus, Collectors.counting()));
 
-        int finishedCount = statusCounts.getOrDefault(QueueStatus.FINISHED, 0L).intValue();
+        // 입장이 완료된 사용자 수 계산 (FINISHED 상태만 카운트)
+        int finishedCount = (int) allQueues.stream()
+                .filter(q -> q.getStatus().equals(QueueStatus.FINISHED))
+                .count();
+
+        // WAITING 상태와 TOKEN_ISSUED 상태의 사용자 수 계산
         int waitingCount = statusCounts.getOrDefault(QueueStatus.WAITING, 0L).intValue();
         int tokenIssuedCount = statusCounts.getOrDefault(QueueStatus.TOKEN_ISSUED, 0L).intValue();
 
+        // 현재 Queue의 정보를 담은 ApplicationQueueResponse 반환
         return ApplicationQueueResponse.builder()
                 .queueId(queue.getQueueId())
                 .userId(queue.getUserId())
@@ -75,23 +83,27 @@ public class ApplicationQueueResponse {
                 .expirationTime(queue.getExpirationTime())
                 .estimatedWaitTime(queue.getEstimatedWaitTime())
                 .maxCapacity(maxCapacity)
-                .currentQueueCount(currentQueueCount)
-                .finishedCount(finishedCount)
-                .waitingCount(waitingCount)
-                .tokenIssuedCount(tokenIssuedCount)
-                .queues(allQueues.stream().map(QueueInfo::of).collect(Collectors.toList()))
+                .currentQueueCount(currentQueueCount)  // 전체 대기 중인 사용자 수
+                .finishedCount(finishedCount)  // 입장이 완료된 사용자 수
+                .waitingCount(waitingCount)  // 대기 중인 사용자 수
+                .tokenIssuedCount(tokenIssuedCount)  // 발급된 토큰 수
+                .queues(allQueues.stream().map(QueueInfo::of).collect(Collectors.toList()))  // Queue의 세부 정보
                 .build();
     }
 
     @Getter
     public static class QueueInfo {
-        private final Long queueId;
-        private final Long userId;
-        private final int queuePosition;
-        private final QueueStatus status;
-        private final LocalDateTime activationTime;
-        private final LocalDateTime expirationTime;
-        private final Duration estimatedWaitTime;
+        private Long queueId;
+        private Long userId;
+        private int queuePosition;
+        private QueueStatus status;
+        private LocalDateTime activationTime;
+        private LocalDateTime expirationTime;
+        private Duration estimatedWaitTime;
+
+        // 기본 생성자 추가
+        public QueueInfo() {
+        }
 
         @Builder
         public QueueInfo(Long queueId, Long userId, int queuePosition, QueueStatus status,

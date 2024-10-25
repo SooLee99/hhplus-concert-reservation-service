@@ -6,13 +6,10 @@ import lombok.Getter;
 import org.example.hhplusconcertreservationservice.reservations.domain.entity.SeatStatus;
 
 @Getter
+@Builder
+@AllArgsConstructor
 public class SeatInfoResponse {
-    private Long seatId;
-    private SeatStatus seatStatus;
-
-    @Builder
-    public SeatInfoResponse(Long seatId, SeatStatus seatStatus) {
-        this.seatId = seatId;
-        this.seatStatus = seatStatus;
-    }
+    private final Long seatId;
+    private final int seatNumber;
+    private final SeatStatus status;
 }
