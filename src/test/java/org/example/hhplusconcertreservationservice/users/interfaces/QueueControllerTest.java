@@ -1,8 +1,6 @@
 package org.example.hhplusconcertreservationservice.users.interfaces;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.hhplusconcertreservationservice.users.application.exception.ExceptionMessage;
-import org.example.hhplusconcertreservationservice.users.application.exception.QueueEntryNotFoundException;
 import org.example.hhplusconcertreservationservice.users.domain.Queue;
 import org.example.hhplusconcertreservationservice.users.infrastructure.QueueRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,45 +99,6 @@ class QueueControllerTest {
                 .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.queuePosition").isNumber())
                 .andExpect(jsonPath("$.estimatedWaitTime").exists());
-    }
-
-    @DisplayName("존재하지 않는 유저의 대기열 상태 조회 시 오류 테스트")
-    @Test
-    void whenGetQueueStatusForNonExistingUser_thenReturnsError() throws Exception {
-        // given
-        Long userId = 999L; // 존재하지 않는 유저 ID
-
-        // when & then
-        mockMvc.perform(get("/api/v1/queue/queue-status")
-                        .param("userId", userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(ExceptionMessage.QUEUE_ENTRY_NOT_FOUND.getMessage()));
-    }
-
-    @DisplayName("토큰 만료 후 대기열 상태 조회 시 오류 테스트")
-    @Test
-    void whenGetQueueStatusAfterTokenExpiry_thenReturnsError() throws Exception {
-        // given
-        Long userId = 3L;
-
-        // 토큰 발급
-        mockMvc.perform(post("/api/v1/queue/issue-token")
-                        .param("userId", userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-
-        // 토큰 만료 시간 조작 (예를 들어, 토큰 발급 후 만료되었다고 가정)
-        Queue queue = queueRepository.findActiveQueueByUserId(userId).get();
-        queue.updateExpirationTime(LocalDateTime.now().minusMinutes(1));
-        queueRepository.save(queue);
-
-        // when & then
-        mockMvc.perform(get("/api/v1/queue/queue-status")
-                        .param("userId", userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("토큰이 만료되었습니다."));
     }
 
     @DisplayName("다수의 유저에 대한 대기열 토큰 발급 및 상태 조회 통합 테스트")

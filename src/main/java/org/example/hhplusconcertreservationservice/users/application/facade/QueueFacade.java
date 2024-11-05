@@ -2,13 +2,13 @@ package org.example.hhplusconcertreservationservice.users.application.facade;
 
 import lombok.RequiredArgsConstructor;
 import org.example.hhplusconcertreservationservice.users.application.dto.response.ApplicationQueueResponse;
-import org.example.hhplusconcertreservationservice.users.application.usecase.IssueQueueTokenUseCase;
-import org.example.hhplusconcertreservationservice.users.application.usecase.CheckQueuePositionUseCase;
+import org.example.hhplusconcertreservationservice.users.application.usecase.queue.IssueQueueTokenUseCase;
+import org.example.hhplusconcertreservationservice.users.application.usecase.queue.CheckQueuePositionUseCase;
 import org.example.hhplusconcertreservationservice.users.interfaces.dto.response.InterfacesQueueResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Facade는 여러 서비스나 유스케이스를 조합하여 단순화된 인터페이스를 컨트롤러 레이어에 제공하는 역할을 합니다. **/
+/** Facade는 상위 레이어(주로 컨트롤러)가 비즈니스 로직에 접근하는 진입 지점을 제공을 합니다. **/
 @Service
 @RequiredArgsConstructor
 public class QueueFacade {

@@ -20,7 +20,7 @@ public class Reservation extends BaseEntity {
     @Column(name = "reservation_id")
     private Long reservationId;
 
-    @Column(name = "payment_id", nullable = false)
+    @Column(name = "payment_id")
     private Long paymentId;
 
     @Column(name = "schedule_id", nullable = false)
@@ -50,9 +50,10 @@ public class Reservation extends BaseEntity {
     }
 
     @Builder
-    public Reservation(Long userId, Long paymentId, Long seatId, Long scheduleId,
+    public Reservation(Long reservationId, Long userId, Long paymentId, Long seatId, Long scheduleId,
                        ReservationStatus reservationStatus, LocalDateTime reservationTime,
-                       LocalDateTime expirationTime) {
+                       LocalDateTime expirationTime, LocalDate reservationDate) {
+        this.reservationId = reservationId;
         this.userId = userId;
         this.paymentId = paymentId;
         this.seatId = seatId;
@@ -60,14 +61,20 @@ public class Reservation extends BaseEntity {
         this.reservationStatus = reservationStatus;
         this.reservationTime = reservationTime;
         this.expirationTime = expirationTime;
+        this.reservationDate = reservationDate != null ? reservationDate : LocalDate.now(); // reservationDate가 없으면 기본 값 설정
     }
 
     public void expire() {
-        this.reservationStatus = ReservationStatus.EXPIRED;
+        this.reservationStatus = ReservationStatus.CANCELLED;
     }
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(this.expirationTime);
     }
+
+    public void updateStatus(ReservationStatus reservationStatus) {
+        this.reservationStatus = reservationStatus;
+    }
+
 }
 

@@ -11,31 +11,17 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 public class CreateReservationRequest {
-    private Long reservationId;
-    @NotNull
-    private Long paymentId;
 
     @NotNull
-    private Long scheduleId;
+    private String token;  // 유저 토큰
 
-    @NotNull
-    private Long userId;
 
     @NotNull
     private Long seatId;
-    private ReservationStatus reservationStatus;
-    private LocalDateTime reservationTime;
-    private LocalDateTime expirationTime;
 
     @Builder
-    public CreateReservationRequest(Long reservationId, Long paymentId, Long scheduleId, Long userId, Long seatId, ReservationStatus reservationStatus, LocalDateTime reservationTime, LocalDateTime expirationTime) {
-        this.reservationId = reservationId;
-        this.paymentId = paymentId;
-        this.scheduleId = scheduleId;
-        this.userId = userId;
+    public CreateReservationRequest(String token, Long seatId) {
+        this.token = token;
         this.seatId = seatId;
-        this.reservationStatus = reservationStatus;
-        this.reservationTime = reservationTime;
-        this.expirationTime = expirationTime;
     }
 }

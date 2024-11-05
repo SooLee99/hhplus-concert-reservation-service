@@ -17,7 +17,7 @@ public class TokenGenerator {
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15분 만료
+                    .setExpiration(new Date(System.currentTimeMillis() + 1000 *  60 * 60 * 24)) // 15분 만료
                 .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
     }

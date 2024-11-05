@@ -2,15 +2,15 @@ package org.example.hhplusconcertreservationservice.users.application.service.qu
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hhplusconcertreservationservice.global.exception.ExceptionMessage;
 import org.example.hhplusconcertreservationservice.users.application.common.QueuePositionCalculator;
 import org.example.hhplusconcertreservationservice.users.application.common.TokenGenerator;
 import org.example.hhplusconcertreservationservice.users.application.dto.response.ApplicationQueueResponse;
-import org.example.hhplusconcertreservationservice.users.application.exception.ActiveTokenExistsException;
-import org.example.hhplusconcertreservationservice.users.application.exception.QueueCreationFailedException;
 import org.example.hhplusconcertreservationservice.users.domain.Queue;
 import org.example.hhplusconcertreservationservice.users.domain.QueueStatus;
 import org.example.hhplusconcertreservationservice.users.infrastructure.QueueRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
@@ -40,11 +40,17 @@ public class QueueManager {
      * @param maxCapacity 최대 수용 가능 인원 수
      * @return ApplicationQueueResponse
      */
-    @Transactional
+    @Transactional  // 트랜잭션 격리 수준이 낮아져 동시성 문제를 일부러 발생시킴.
     public ApplicationQueueResponse issueQueueToken(Long userId, int maxCapacity) {
+        long currentQueueSize = queueRepository.countByStatusIn(List.of(QueueStatus.WAITING, QueueStatus.PROCESSING));
+
+        if (currentQueueSize >= maxCapacity) {
+            throw new IllegalArgumentException(ExceptionMessage.SERVER_OVERLOADED.getMessage());
+        }
+
         Optional<Queue> existingQueue = queueRepository.findActiveQueueByUserId(userId);
         if (existingQueue.isPresent()) {
-            throw new ActiveTokenExistsException();
+            throw new IllegalArgumentException(ExceptionMessage.ACTIVE_TOKEN_EXISTS.getMessage());
         }
         try {
             Queue newQueue = Queue.builder()
@@ -67,7 +73,7 @@ public class QueueManager {
             queueRepository.save(newQueue);  // 업데이트된 큐 저장
             log.info("큐 저장 완료");
 
-            queueProcessor.processQueueInFIFO(maxCapacity);  // FIFO 처리
+            queueProcessor.processQueueInFIFO();  // FIFO 처리
             log.info("큐 처리 완료");
 
             List<Queue> allQueues = queueRepository.findAll();
@@ -76,8 +82,9 @@ public class QueueManager {
             return response;
         } catch (RuntimeException e) {
             log.error("대기열 생성 실패: {}", e.getMessage());
-            throw new QueueCreationFailedException();
+            throw new IllegalArgumentException(ExceptionMessage.QUEUE_CREATION_FAILED.getMessage());
         }
+
     }
 
     /**

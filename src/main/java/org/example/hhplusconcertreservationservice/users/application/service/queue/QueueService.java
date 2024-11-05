@@ -2,20 +2,18 @@ package org.example.hhplusconcertreservationservice.users.application.service.qu
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.hhplusconcertreservationservice.global.exception.ExceptionMessage;
 import org.example.hhplusconcertreservationservice.users.application.common.QueuePositionCalculator;
 import org.example.hhplusconcertreservationservice.users.application.dto.response.ApplicationQueueResponse;
-import org.example.hhplusconcertreservationservice.users.application.exception.*;
 import org.example.hhplusconcertreservationservice.users.domain.Queue;
 import org.example.hhplusconcertreservationservice.users.domain.QueueStatus;
 import org.example.hhplusconcertreservationservice.users.infrastructure.QueueRepository;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -37,48 +35,44 @@ public class QueueService {
     @Transactional(readOnly = true)
     public ApplicationQueueResponse getCurrentQueueStatus(Long userId) {
         Queue queue = queueRepository.findActiveQueueByUserId(userId)
-                .orElseThrow(QueueEntryNotFoundException::new);
+                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessage.QUEUE_ENTRY_NOT_FOUND.getMessage()));
 
         if (queue.getExpirationTime() != null && queue.getExpirationTime().isBefore(LocalDateTime.now(clock))) {
-            throw new TokenExpiredException();
+            throw new IllegalArgumentException(ExceptionMessage.TOKEN_EXPIRED.getMessage());
         }
+
+        // 대기열 안에 사용자들의 리스트에서 FINISHED 상태의 사용자만 계산
+        List<Queue> activeUsers = queueRepository.findAllByStatusInOrderByIssuedTimeAsc(
+                List.of(QueueStatus.FINISHED));
 
         int position = queuePositionCalculator.calculatePosition(userId);
         Duration estimatedWaitTime = queuePositionCalculator.calculateEstimatedWaitTime(userId);
 
         queue.updateQueuePositionAndWaitTime(position, estimatedWaitTime);
 
-        List<Queue> allQueues = queueRepository.findAll();
-        return ApplicationQueueResponse.of(queue, serverLoadMonitor.getMaxCapacity(), allQueues.size(), allQueues);
+        return ApplicationQueueResponse.of(queue, serverLoadMonitor.getMaxCapacity(), activeUsers.size(), activeUsers);
     }
 
     /**
-     * 만료된 대기열 삭제 (주기적으로 실행됨)
-     * 매 분마다 실행하여 만료된 대기열을 삭제합니다.
+     * 유저의 대기열 토큰을 검증하는 메서드.
+     *
+     * @param token 유저의 토큰
      */
-    @Scheduled(cron = "0 * * * * *")
-    @Transactional
-    public void removeExpiredQueues() {
-        LocalDateTime now = LocalDateTime.now(clock);
-        int deletedCount = queueRepository.deleteAllByExpirationTimeBefore(now);
-        log.info("삭제된 큐 개수: {}", deletedCount);
-
-        // 만료된 큐 삭제 후, 새로 입장 완료 처리
-        List<Queue> remainingQueues = queueRepository.findAll();
-        remainingQueues.stream()
-                .sorted(Comparator.comparingInt(Queue::getQueuePosition))
-                .limit(serverLoadMonitor.getMaxCapacity() - (int) remainingQueues.stream().filter(q -> q.getStatus() == QueueStatus.FINISHED).count())
-                .forEach(queue -> {
-                    if (queue.getStatus() == QueueStatus.TOKEN_ISSUED) {
-                        queue.updateStatus(QueueStatus.REMOVED);
-                        queue.updateIsActive(false);
-                        queue.updateExpirationTime(LocalDateTime.now(clock).plusMinutes(5));
-                        queueRepository.save(queue);
-                    }
-                });
-
-        log.info("남은 큐 개수: {}", remainingQueues.size());
-        remainingQueues.forEach(queue -> log.info("Queue 정보: {}", queue));
+    public void validateQueueToken(String token) {
+        queueRepository.findByQueueToken(token)
+                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessage.TOKEN_EXPIRED.getMessage()));
     }
 
+    /**
+     * 유저의 대기열 토큰을 기반으로 유저 ID를 추출하는 메서드.
+     *
+     * @param token 유저의 토큰
+     * @return 유저 ID
+     */
+    @Transactional(readOnly = true)
+    public Long getUserIdFromToken(String token) {
+        Queue queue = queueRepository.findByQueueToken(token)
+                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessage.TOKEN_EXPIRED.getMessage()));
+        return queue.getUserId();  // Queue 엔티티에서 유저 ID를 반환
+    }
 }

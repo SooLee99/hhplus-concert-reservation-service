@@ -1,11 +1,13 @@
 package org.example.hhplusconcertreservationservice.users.application.service.queue;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hhplusconcertreservationservice.users.application.common.QueuePositionCalculator;
 import org.example.hhplusconcertreservationservice.users.domain.Queue;
 import org.example.hhplusconcertreservationservice.users.domain.QueueStatus;
 import org.example.hhplusconcertreservationservice.users.infrastructure.QueueRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,86 +15,89 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
-/**
- * 대기열을 FIFO 방식으로 처리하고, 서버 상태에 따라 대기열을 관리하는 클래스
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class QueueProcessor {
-
     private final QueueRepository queueRepository;
     private final QueuePositionCalculator queuePositionCalculator;
+    private final ServerLoadMonitor serverLoadMonitor;
+    private final QueueAsyncProcessor queueAsyncProcessor; // 비동기 처리 서비스 주입
     private final Clock clock;
 
-    /**
-     * FIFO 방식으로 대기열을 처리하며 상태를 순차적으로 업데이트
-     */
-    @Transactional
-    public void processQueueInFIFO(int maxCapacity) {
-        List<Queue> waitingUsers = queueRepository.findAllByStatusInOrderByIssuedTimeAsc(List.of(QueueStatus.WAITING, QueueStatus.TOKEN_ISSUED));
+    private Semaphore processingSemaphore;
 
-        for (int i = 0; i < waitingUsers.size(); i++) {
-            Queue queue = waitingUsers.get(i);
-            int newPosition = i + 1;
+    @PostConstruct
+    private void init() {
+        int maxCapacity = serverLoadMonitor.getMaxCapacity();
+        processingSemaphore = new Semaphore(maxCapacity);
+    }
+
+    public void updateMaxCapacity(int newMaxCapacity) {
+        processingSemaphore = new Semaphore(newMaxCapacity);
+    }
+
+    @Scheduled(fixedDelay = 5000) // 5초마다 실행
+    public void scheduledProcessQueue() {
+        removeExpiredQueues(); // 만료된 큐 제거
+        processQueueInFIFO();
+    }
+
+    @Transactional
+    public void removeExpiredQueues() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        // 수정된 쿼리 조건: 상태가 FINISHED이고 expirationTime이 현재 시간 이전인 큐만 조회
+        List<Queue> expiredQueues = queueRepository.findAllByStatusAndExpirationTimeBeforeAndIsActiveTrue(
+                QueueStatus.FINISHED, now);
+
+        for (Queue queue : expiredQueues) {
+            queue.updateStatus(QueueStatus.REMOVED);
+            queue.updateIsActive(false);
+            queueRepository.save(queue);
+            log.info("만료된 큐 제거: userId={}, queueId={}", queue.getUserId(), queue.getQueueId());
+        }
+    }
+
+    public void processQueueInFIFO() {
+        List<Queue> waitingUsers = queueRepository.findAllByStatusInOrderByIssuedTimeAsc(
+                List.of(QueueStatus.WAITING, QueueStatus.TOKEN_ISSUED));
+
+        for (Queue queue : waitingUsers) {
+            int position = queuePositionCalculator.calculatePosition(queue.getUserId());
             Duration estimatedWaitTime = queuePositionCalculator.calculateEstimatedWaitTime(queue.getUserId());
 
-            queue.updateQueuePosition(newPosition);
+            queue.updateQueuePosition(position);
             queue.updateEstimatedWaitTime(estimatedWaitTime);
 
-            // 최대 수용 인원 내의 유저는 상태를 업데이트
-            if (i < maxCapacity) {
+            if (processingSemaphore.tryAcquire()) {
                 queue.updateStatus(QueueStatus.PROCESSING);
                 queue.updateActivationTime(LocalDateTime.now(clock));
+                queueRepository.save(queue);
+
+                // 비동기 서비스를 통해 사용자 처리 수행
+                queueAsyncProcessor.processUserEntryAsync(queue, processingSemaphore);
             } else {
                 queue.updateStatus(QueueStatus.WAITING);
+                queue.updateExpirationTime(null);
+                queueRepository.save(queue);
             }
-
-            queueRepository.save(queue);
         }
+
+        logQueueProcessingInfo(processingSemaphore.availablePermits(), waitingUsers.size());
     }
 
     /**
-     * 대기열의 개별 Queue를 처리하는 메서드
+     * 현재 서버 상태와 대기열 정보를 로그로 출력하는 메서드
      */
-    private void processQueue(Queue queue, int maxCapacity) {
-        QueueStatus newStatus = determineNewStatus(queue, maxCapacity);
-        queue.updateStatus(newStatus);
+    private void logQueueProcessingInfo(int availablePermits, int queueSize) {
+        int maxCapacity = serverLoadMonitor.getMaxCapacity();
+        int processingCount = maxCapacity - availablePermits;
 
-        // 상태에 따른 만료 시간 처리
-        updateExpirationTimeBasedOnStatus(queue, newStatus);
-
-        // 상태 업데이트 후 저장
-        queueRepository.save(queue);
-    }
-
-    /**
-     * 상태에 따른 만료 시간 업데이트 로직 분리
-     */
-    private void updateExpirationTimeBasedOnStatus(Queue queue, QueueStatus newStatus) {
-        if (newStatus == QueueStatus.FINISHED) {
-            queue.updateExpirationTime(LocalDateTime.now(clock).plusMinutes(5));  // 만료 시간 5분으로 설정
-        } else {
-            queue.updateExpirationTime(null);  // 그 외 상태에서는 만료 시간 null
-        }
-    }
-
-    /**
-     * 대기열 처리 후 로그를 출력하는 메서드
-     */
-    private void logQueueProcessingInfo(int maxCapacity, int queueSize) {
-        log.info("현재 서버 최대 수용 인원: {}, 대기 중인 사용자 수: {}", maxCapacity, queueSize);
-    }
-
-    /**
-     * 대기열의 상태를 결정하는 메서드
-     */
-    public QueueStatus determineNewStatus(Queue queue, int maxCapacity) {
-        if (queue.getQueuePosition() < maxCapacity) {
-            return QueueStatus.FINISHED;  // 최대 인원 안에 들어온 사람들은 '입장 완료' 상태로 변경
-        } else {
-            return QueueStatus.WAITING;  // 나머지 사람들은 '대기 중' 상태로 변경
-        }
+        log.info("현재 서버 최대 수용 인원: {}, 처리 중인 사용자 수: {}, 처리 가능 슬롯: {}, 대기 중인 사용자 수: {}",
+                maxCapacity, processingCount, availablePermits, queueSize);
     }
 }
+
+// verifiable

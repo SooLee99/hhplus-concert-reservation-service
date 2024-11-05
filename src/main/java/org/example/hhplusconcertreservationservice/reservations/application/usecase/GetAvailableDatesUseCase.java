@@ -1,8 +1,8 @@
 package org.example.hhplusconcertreservationservice.reservations.application.usecase;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public interface GetAvailableDatesUseCase {
-    List<LocalDateTime> getAvailableDates();
+    List<Map<String, Object>> getAvailableDates(String token);
 }
