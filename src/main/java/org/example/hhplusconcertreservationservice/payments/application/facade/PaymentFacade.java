@@ -13,7 +13,6 @@ import java.util.List;
 public class PaymentFacade {
 
     private final ProcessPaymentUseCase processPaymentUseCase;
-
     public PaymentResponse processPayment(PaymentRequest request) {
         return processPaymentUseCase.processPayment(request);
     }

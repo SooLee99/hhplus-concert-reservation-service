@@ -1,4 +1,4 @@
-package org.example.hhplusconcertreservationservice.users.application.interceptor;
+package org.example.hhplusconcertreservationservice.global.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

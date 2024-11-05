@@ -35,6 +35,15 @@ dependencies {
     // H2 Database
     runtimeOnly 'com.h2database:h2'
 
+    // redis
+    implementation 'org.redisson:redisson-spring-boot-starter:3.23.6'
+    implementation 'org.redisson:redisson:3.22.0'
+    implementation 'org.redisson:redisson-spring-data-18:3.38.0'
+
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

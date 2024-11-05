@@ -53,7 +53,6 @@ class CreateReservationServiceTest {
         CreateReservationRequest request = new CreateReservationRequest(token, seatId);
 
         Seat seat = Seat.builder()
-                .seatId(seatId)
                 .scheduleId(10L)
                 .seatNumber(1)
                 .seatTypeId(5L)
@@ -95,7 +94,6 @@ class CreateReservationServiceTest {
         CreateReservationRequest request = new CreateReservationRequest(token, seatId);
 
         Seat seat = Seat.builder()
-                .seatId(seatId)
                 .isReserved(true) // 이미 예약됨
                 .build();
 
@@ -180,7 +178,6 @@ class CreateReservationServiceTest {
         CreateReservationRequest request = new CreateReservationRequest(token, seatId);
 
         Seat seat = Seat.builder()
-                .seatId(seatId)
                 .scheduleId(10L)
                 .seatNumber(1)
                 .seatTypeId(5L)

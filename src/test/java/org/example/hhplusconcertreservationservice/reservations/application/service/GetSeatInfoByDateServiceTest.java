@@ -69,13 +69,11 @@ class GetSeatInfoByDateServiceTest {
         when(concertScheduleService.getScheduleIdByDate(date)).thenReturn(Optional.of(scheduleId));
 
         Seat seat1 = Seat.builder()
-                .seatId(1L)
                 .seatNumber(1)
                 .seatTypeId(10L)
                 .build();
 
         Seat seat2 = Seat.builder()
-                .seatId(2L)
                 .seatNumber(2)
                 .seatTypeId(10L)
                 .build();

@@ -31,6 +31,7 @@ public interface QueueRepository extends JpaRepository<Queue, Long> {
     void deleteByUserId(@Param("userId") Long userId);
 
     // 상태가 특정 상태인 대기열을 발급 시간 순으로 조회
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT q FROM Queue q WHERE q.status = :status ORDER BY q.issuedTime ASC")
     List<Queue> findAllByStatusOrderByIssuedTimeAsc(@Param("status") QueueStatus status);
 
@@ -45,9 +46,7 @@ public interface QueueRepository extends JpaRepository<Queue, Long> {
     @Query("SELECT COUNT(q) FROM Queue q WHERE q.status IN :statuses")
     long countByStatusIn(@Param("statuses") List<QueueStatus> statuses);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT q FROM Queue q WHERE q.userId = :userId AND q.isActive = true")
-    Optional<Queue> findActiveQueueByUserIdWithLock(@Param("userId") Long userId);
-
     Optional<Queue> findByQueueToken(String token);
+
+    List<Queue> findAllByStatus(QueueStatus status);
 }

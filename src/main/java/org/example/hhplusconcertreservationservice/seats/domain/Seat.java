@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,15 +32,13 @@ public class Seat extends BaseEntity {
     @Column(name = "is_reserved", nullable = false)
     private boolean isReserved;
 
-    @Builder
-    public Seat(Long seatId, Long seatTypeId, Long scheduleId, int seatNumber, boolean isReserved) {
-        this.seatId = seatId; // seatId를 수동으로 설정
+    @Builder // Builder 패턴 생성자를 public으로 유지
+    public Seat(Long seatTypeId, Long scheduleId, int seatNumber, boolean isReserved) {
         this.seatTypeId = seatTypeId;
         this.scheduleId = scheduleId;
         this.seatNumber = seatNumber;
         this.isReserved = isReserved;
     }
-
 
     // 좌석 유효성 검증 메서드
     public boolean isValid() {
@@ -59,5 +59,6 @@ public class Seat extends BaseEntity {
     public void cancelReservation() {
         this.isReserved = false;
     }
+
 }
 

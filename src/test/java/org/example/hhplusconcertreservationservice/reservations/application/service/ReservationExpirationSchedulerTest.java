@@ -50,7 +50,6 @@ class ReservationExpirationSchedulerTest {
                 .thenReturn(expiredReservations);
 
         Seat seat = Seat.builder()
-                .seatId(100L)
                 .isReserved(true)
                 .build();
 

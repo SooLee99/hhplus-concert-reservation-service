@@ -1,6 +1,7 @@
 package org.example.hhplusconcertreservationservice.users.application.service.balance;
 
 import lombok.RequiredArgsConstructor;
+import org.example.hhplusconcertreservationservice.global.exception.ExceptionMessage;
 import org.example.hhplusconcertreservationservice.users.application.dto.request.ChargeBalanceRequest;
 import org.example.hhplusconcertreservationservice.users.application.dto.response.UserBalanceResponse;
 import org.example.hhplusconcertreservationservice.users.application.usecase.balance.UseBalanceUseCase;
@@ -9,6 +10,7 @@ import org.example.hhplusconcertreservationservice.users.domain.UserBalance;
 import org.example.hhplusconcertreservationservice.users.domain.UserBalanceHistory;
 import org.example.hhplusconcertreservationservice.users.infrastructure.UserBalanceHistoryRepository;
 import org.example.hhplusconcertreservationservice.users.infrastructure.UserBalanceRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,5 +55,17 @@ public class UseBalanceService implements UseBalanceUseCase {
     public UserBalanceResponse getUserBalance(ChargeBalanceRequest request) {
         UserBalance userBalance = userBalanceQueryService.getUserBalanceEntity(request.getUserId());
         return new UserBalanceResponse(userBalance);
+    }
+
+    /**
+     * 사용자 잔액을 충전하는 메서드
+     */
+
+    public void chargeBalance(ChargeBalanceRequest request) {
+        UserBalance userBalance = userBalanceRepository.findByUserId(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessage.USER_NOT_FOUND.getMessage()));
+
+        userBalance.charge(request.getAmount());
+        userBalanceRepository.save(userBalance);
     }
 }

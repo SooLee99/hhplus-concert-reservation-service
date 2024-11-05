@@ -1,7 +1,7 @@
 package org.example.hhplusconcertreservationservice.global.config;
 
-import org.example.hhplusconcertreservationservice.users.application.interceptor.QueueTokenInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.example.hhplusconcertreservationservice.global.interceptor.QueueTokenInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

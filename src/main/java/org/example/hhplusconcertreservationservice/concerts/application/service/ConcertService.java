@@ -22,4 +22,8 @@ public class ConcertService {
     public Optional<Concert> getConcertById(Long concertId) {
         return concertRepository.findById(concertId);
     }
+
+    public void save(Concert concert) {
+        concertRepository.save(concert);
+    }
 }

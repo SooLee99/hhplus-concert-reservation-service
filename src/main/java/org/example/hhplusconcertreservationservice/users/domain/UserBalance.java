@@ -55,4 +55,8 @@ public class UserBalance extends BaseEntity {
     public void use(BigDecimal amount) {
         this.balance = this.balance.subtract(amount);
     }
+
+    public void setBalance(BigDecimal initialBalance) {
+        this.balance = initialBalance;
+    }
 }

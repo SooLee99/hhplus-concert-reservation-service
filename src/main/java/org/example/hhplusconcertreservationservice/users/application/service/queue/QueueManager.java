@@ -10,6 +10,7 @@ import org.example.hhplusconcertreservationservice.users.domain.Queue;
 import org.example.hhplusconcertreservationservice.users.domain.QueueStatus;
 import org.example.hhplusconcertreservationservice.users.infrastructure.QueueRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
@@ -39,7 +40,7 @@ public class QueueManager {
      * @param maxCapacity 최대 수용 가능 인원 수
      * @return ApplicationQueueResponse
      */
-    @Transactional
+    @Transactional  // 트랜잭션 격리 수준이 낮아져 동시성 문제를 일부러 발생시킴.
     public ApplicationQueueResponse issueQueueToken(Long userId, int maxCapacity) {
         long currentQueueSize = queueRepository.countByStatusIn(List.of(QueueStatus.WAITING, QueueStatus.PROCESSING));
 

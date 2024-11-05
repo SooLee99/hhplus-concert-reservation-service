@@ -57,6 +57,15 @@ public class Queue extends BaseEntity {
         this.isActive = true;
     }
 
+    public Queue(Long userId, String queueToken, QueueStatus status, LocalDateTime expirationTime) {
+        this.userId = userId;
+        this.queueToken = queueToken;
+        this.status = status;
+        this.expirationTime = expirationTime;
+        this.issuedTime = LocalDateTime.now();
+        this.isActive = true;
+    }
+
     @Builder
     public Queue(Long userId, Duration estimatedWaitTime, int queuePosition, String queueToken, QueueStatus status, LocalDateTime issuedTime, LocalDateTime expirationTime, LocalDateTime activationTime) {
         this.userId = userId;

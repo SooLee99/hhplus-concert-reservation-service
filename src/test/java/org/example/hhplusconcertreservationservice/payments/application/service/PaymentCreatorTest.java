@@ -49,7 +49,6 @@ class PaymentCreatorTest {
         // Given
         PaymentRequest request = new PaymentRequest(1L, "valid_token");
         Seat seat = Seat.builder()
-                .seatId(1L)
                 .seatTypeId(2L)
                 .build();
         SeatType seatType = SeatType.builder()
@@ -87,7 +86,6 @@ class PaymentCreatorTest {
         // Given
         PaymentRequest request = new PaymentRequest(1L, "valid_token");
         Seat seat = Seat.builder()
-                .seatId(1L)
                 .seatTypeId(2L)
                 .build();
 

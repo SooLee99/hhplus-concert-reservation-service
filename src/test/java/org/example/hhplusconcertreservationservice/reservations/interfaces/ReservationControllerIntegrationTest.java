@@ -182,7 +182,6 @@ class ReservationControllerIntegrationTest {
 
         // 좌석 정보 설정
         Seat seat = Seat.builder()
-                .seatId(seatId)
                 .scheduleId(concertSchedule.getScheduleId())
                 .seatTypeId(seatType.getSeatTypeId())
                 .seatNumber(10)
